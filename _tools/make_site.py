@@ -23,10 +23,12 @@ gate = """<style>
 window.GATE=new Promise(ok=>{const H='@@H@@',K='lotus-pass';
 const sha=async t=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t)))].map(b=>b.toString(16).padStart(2,'0')).join('');
 let saved='';try{saved=localStorage.getItem(K)||''}catch(e){}
-if(saved===H){ok();return}
+if(saved!==H){const m=document.cookie.match(/(?:^|; )lotus_pass=([0-9a-f]{64})/);if(m)saved=m[1]}
+const keep=()=>{try{localStorage.setItem(K,H)}catch(e){}try{document.cookie='lotus_pass='+H+'; max-age=31536000; path=/; SameSite=Lax; Secure'}catch(e){}};
+if(saved===H){keep();ok();return}
 const g=document.getElementById('gate');g.hidden=false;
 g.querySelector('form').onsubmit=async e=>{e.preventDefault();const v=await sha(g.querySelector('input').value.trim());
- if(v===H){try{localStorage.setItem(K,H)}catch(e){}g.remove();ok()}else{g.querySelector('.er').textContent='Неверный пароль'}};});
+ if(v===H){keep();g.remove();ok()}else{g.querySelector('.er').textContent='Неверный пароль'}};});
 </script>
 """.replace('@@H@@', H)
 out = '<!doctype html>\n<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">\n<meta name="robots" content="noindex,nofollow">\n' + s.replace('</style>', '</style>\n</head><body>', 1)
