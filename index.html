@@ -279,10 +279,12 @@ body.home .side{display:none}body.home .shell{grid-template-columns:minmax(0,1fr
 #gate img{width:64px}#gate h2{font-size:20px;margin:12px 0 4px;letter-spacing:.06em}#gate p{color:var(--muted,#999);font-size:14px;margin:0 0 18px}
 #gate input{width:100%;box-sizing:border-box;padding:13px 16px;border-radius:12px;border:1px solid var(--line,#333);background:var(--surface,#1b1726);color:inherit;font-size:16px}
 #gate button{margin-top:10px;width:100%;padding:13px;border:0;border-radius:12px;background:#e84a8a;color:#fff;font-size:16px;font-weight:600;cursor:pointer}
-#gate .er{color:#ff6b6b;font-size:13px;min-height:18px;margin-top:8px}
+#gate .vv{font-size:11px;color:var(--muted,#888);margin-top:18px;opacity:.6}
+#gate .er{color:#ff6b6b;font-size:15px;font-weight:600;min-height:20px;margin-top:12px}
+#gate form.bad input{border-color:#ff6b6b;animation:sh .3s}@keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 </style>
-<div id="gate" hidden><form action="javascript:void(0)" onsubmit="return false"><img src="logo.png" alt=""><h2>LOTUS ARENA</h2><p>Материалы · вход по паролю</p>
-<input type="password" placeholder="Пароль" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" autofocus><button type="submit">Войти</button><div class="er"></div></form></div>
+<div id="gate" hidden><form action="javascript:void(0)" onsubmit="return false"><img src="logo.png" alt=""><h2>LOTUS ARENA</h2><p>Материалы · вход по паролю</p><!--v3-->
+<input type="password" placeholder="Пароль" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" autofocus><button type="submit">Войти</button><div class="er"></div><div class="vv">версия 3</div></form></div>
 <script>
 window.GATE=new Promise(ok=>{const H='5f87b203c4b6d096fbf35162f40e4b470a5c449700ec4ec7c50a3dc2bfb6649a',K='lotus-pass';
 const shaJS=t=>{const u=unescape(encodeURIComponent(t)),K=[],H0=[];let n=2,c=0;const f=x=>(x-Math.floor(x))*4294967296|0;
@@ -293,14 +295,17 @@ const shaJS=t=>{const u=unescape(encodeURIComponent(t)),K=[],H0=[];let n=2,c=0;c
   let [A,B,C,D,E,F,G,I]=h;for(let i=0;i<64;i++){const t1=(I+(r(E,6)^r(E,11)^r(E,25))+(E&F^~E&G)+K[i]+w[i])|0,t2=((r(A,2)^r(A,13)^r(A,22))+(A&B^A&C^B&C))|0;I=G;G=F;F=E;E=(D+t1)|0;D=C;C=B;B=A;A=(t1+t2)|0}
   [A,B,C,D,E,F,G,I].forEach((v,i)=>h[i]=(h[i]+v)|0)}return h.map(v=>(v>>>0).toString(16).padStart(8,'0')).join('')};
 const sha=async t=>{try{if(window.crypto&&crypto.subtle)return [...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t)))].map(b=>b.toString(16).padStart(2,'0')).join('')}catch(e){}return shaJS(t)};
-const norm=v=>v.replace(/[‐-―−]/g,'-').replace(/\s+/g,'');
+const norm0=v=>v.replace(/[‐-―−]/g,'-').replace(/\s+/g,'');
+const RU='йцукенгшщзхъфывапролджэячсмитьбю',EN="qwertyuiop[]asdfghjkl;'zxcvbnm,.";
+const lat=v=>[...v].map(ch=>{const lo=ch.toLowerCase(),i=RU.indexOf(lo);if(i<0)return ch;const e=EN[i];return ch!==lo?e.toUpperCase():e}).join('');
+const norm=v=>lat(norm0(v));
 let saved='';try{saved=localStorage.getItem(K)||''}catch(e){}
 if(saved!==H){const m=document.cookie.match(/(?:^|; )lotus_pass=([0-9a-f]{64})/);if(m)saved=m[1]}
 const keep=()=>{try{localStorage.setItem(K,H)}catch(e){}try{document.cookie='lotus_pass='+H+'; max-age=31536000; path=/; SameSite=Lax; Secure'}catch(e){}};
 if(saved===H){keep();ok();return}
 const g=document.getElementById('gate');g.hidden=false;
 const go=async e=>{if(e)e.preventDefault();const er=g.querySelector('.er');er.textContent='Проверяю…';let v='';try{v=await sha(norm(g.querySelector('input').value))}catch(x){er.textContent='Ошибка браузера: '+x;return}
- if(v===H){keep();g.remove();ok()}else{er.textContent='Неверный пароль — проверьте большие и маленькие буквы'}};
+ if(v===H){keep();g.remove();ok()}else{const fm=g.querySelector('form');fm.classList.remove('bad');void fm.offsetWidth;fm.classList.add('bad');er.textContent='Неверный пароль. Проверьте большие и маленькие буквы.'}};
 const f=g.querySelector('form');f.addEventListener('submit',go);g.querySelector('button').addEventListener('click',go);});
 </script>
 <script>
