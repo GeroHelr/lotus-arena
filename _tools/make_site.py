@@ -6,6 +6,10 @@ src, out_path = sys.argv[1], sys.argv[2]
 if sys.argv[3] == '--hash': H = sys.argv[4]
 else: H = re.search(r"const H='([0-9a-f]{64})'", open(sys.argv[4]).read()).group(1)
 s = open(src).read()
+API = ''
+if '--api' in sys.argv: API = sys.argv[sys.argv.index('--api') + 1]
+elif sys.argv[3] == '--keep-hash-from':
+    m = re.search(r"window\.TZ_API='([^']*)'", open(sys.argv[4]).read()); API = m.group(1) if m else ''
 call = "fetch('data.json',{cache:'no-store'})"
 assert call in s
 s = s.replace(call, "window.GATE.then(()=>" + call + ")", 1)
@@ -48,6 +52,6 @@ const f=g.querySelector('form');f.addEventListener('submit',go);g.querySelector(
 """.replace('@@H@@', H)
 out = '<!doctype html>\n<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">\n<meta name="robots" content="noindex,nofollow">\n<meta name="theme-color" content="#110e1c">\n<meta name="description" content="Все материалы Lotus Arena: промо артистов, афиши, видео. Пхукет · Паттайя · Нячанг">\n<meta property="og:type" content="website">\n<meta property="og:site_name" content="Lotus Arena">\n<meta property="og:title" content="Lotus Arena — материалы">\n<meta property="og:description" content="Промо артистов, афиши, видео. Пхукет · Паттайя · Нячанг">\n<meta property="og:url" content="https://gerohelr.github.io/lotus-arena/">\n<meta property="og:image" content="https://gerohelr.github.io/lotus-arena/og-image.png">\n<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">\n<meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:image" content="https://gerohelr.github.io/lotus-arena/og-image.png">\n<link rel="icon" href="favicon.ico" sizes="any">\n<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">\n<link rel="apple-touch-icon" href="apple-touch-icon.png">\n<link rel="manifest" href="manifest.webmanifest">\n<meta name="apple-mobile-web-app-capable" content="yes">\n<meta name="mobile-web-app-capable" content="yes">\n<meta name="apple-mobile-web-app-title" content="Lotus Arena">\n<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">\n' + s.replace('</style>', '</style>\n</head><body>', 1)
 i = out.index('<script>')  # gate must run before the page script
-out = out[:i] + gate + out[i:] + '\n</body></html>'
+out = out[:i] + gate + ("<script>window.TZ_API='%s';</script>\n" % API if API else '') + out[i:] + '\n</body></html>'
 open(out_path, 'w').write(out)
 print('ok')

@@ -269,6 +269,39 @@ body.home .side{display:none}body.home .shell{grid-template-columns:minmax(0,1fr
 .hic{width:64px;height:64px;border-radius:18px;display:grid;place-items:center;flex:none;color:#fff}.hic svg{width:32px;height:32px}
 .htx b{display:block;font-size:18px;font-weight:700;line-height:1.2}.htx small{display:block;color:var(--muted);font-size:13px;margin-top:4px}
 @media (max-width:640px){.hbtns{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0 26px}.hbtns a{gap:8px;padding:8px 4px;border-radius:14px}.hic{width:46px;height:46px;border-radius:13px}.hic svg{width:24px;height:24px}.htx b{font-size:13.5px}.htx small{font-size:11px;margin-top:2px}}
+/* ТЗ */
+.tz-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.tz-acts{display:flex;gap:8px}
+.tz-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:999px;border:0;background:#e84a8a;color:#fff;font:600 14px var(--f-body);text-decoration:none;cursor:pointer}
+.tz-btn.ghost{background:var(--surface);color:var(--fg);border:1px solid var(--line)}.tz-btn.danger{color:#e5484d}
+.tz-chips{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 18px}
+.tz-chip{padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:500 14px var(--f-body);cursor:pointer}
+.tz-chip.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}.tz-chip i{font-style:normal;opacity:.6;margin-left:4px}
+.tz-board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;align-items:start}
+@media(max-width:1000px){.tz-board{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.tz-board{grid-template-columns:minmax(0,1fr)}}
+.tz-col{background:var(--surface-2);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:10px;min-height:80px}
+.tz-col h3{margin:2px 4px 2px;font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}.tz-col h3::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--c)}.tz-col h3 i{font-style:normal;color:var(--muted);font-weight:500}
+.tz-none{color:var(--faint);text-align:center;padding:8px}
+.tz-card{display:block;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;text-decoration:none;color:var(--fg)}
+.tz-card:hover{border-color:#e84a8a}.tz-card b{display:block;font-size:15px;line-height:1.3;margin:8px 0 2px}.tz-card small{color:var(--muted);font-size:13px}
+.tz-top{display:flex;justify-content:space-between;gap:6px}
+.tz-type{font-size:11.5px;font-weight:600;padding:3px 8px;border-radius:6px;background:var(--surface-2)}.t-video{color:#2f6fb5}.t-poster{color:#e84a8a}.t-other{color:#8a5cf6}
+.tz-st{font-size:11.5px;font-weight:600;color:var(--c)}
+.tz-meta{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:8px;font-size:12.5px;color:var(--muted)}
+.tz-dl.soon{color:#e0892f;font-weight:600}.tz-dl.late{color:#e5484d;font-weight:600}
+.tz-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 18px;max-width:900px;margin-top:10px}
+@media(max-width:640px){.tz-form{grid-template-columns:minmax(0,1fr)}}
+.tz-form .wide{grid-column:1/-1}
+.tz-f{display:flex;flex-direction:column;gap:6px}.tz-f>span{font-size:13px;color:var(--muted);font-weight:500}
+.tz-f input,.tz-f select,.tz-f textarea{width:100%;box-sizing:border-box;padding:11px 13px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:15px var(--f-body)}
+.tz-f textarea{resize:vertical;line-height:1.45}
+.tz-types,.tz-fmts{display:flex;gap:8px;flex-wrap:wrap}.tz-types{grid-column:1/-1}
+.tz-types label,.tz-fmts label{cursor:pointer}.tz-types input,.tz-fmts input{position:absolute;opacity:0;pointer-events:none}
+.tz-types span,.tz-fmts span{display:inline-block;padding:9px 16px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-size:14px;font-weight:500}
+.tz-types input:checked+span,.tz-fmts input:checked+span{background:#e84a8a;border-color:#e84a8a;color:#fff}
+.tz-ro{padding:11px 0;color:var(--muted);font-size:14px}
+.tz-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:4px}.tz-msg{color:var(--muted);font-size:14px}.tz-msg.bad{color:#e5484d}
+.tz-links{max-width:900px;margin-top:22px;display:flex;flex-direction:column;gap:6px;font-size:14px}.tz-links a{color:#e84a8a;word-break:break-all}
 </style>
 </head><body>
 
@@ -416,19 +449,20 @@ function treeLi(id,cur,cp){const k=(id===PROMO_ROOT||artistOf(id))?(id===PROMO_R
   return `<li><div class="node${id===cur?' cur':''}"><button class="tw${k.length?'':' leaf'}" type="button" data-tw="${id}" aria-expanded="${isOpen}" aria-label="Развернуть">${CHEV}</button><a href="#${enc(id)}" title="${esc(F[id].t)}">${esc(id===PROMO_ROOT?F[id].root.title:(ARTIST[id]?ARTIST[id].name:nm(F[id])))}</a></div>${k.length&&isOpen?'<ul>'+k.map(c=>treeLi(c,cur,cp)).join('')+'</ul>':''}</li>`}
 function renderSide(cur){const cp=new Set(cur?path(cur).map(a=>a.id):[]);$('#side').innerHTML='<h4>Структура</h4><div class="tree"><ul>'+ROOTS.map(r=>treeLi(r.id,cur,cp)).join('')+'</ul></div>'}
 function renderTabs(cur){const rid=cur?ROOT_OF[cur]:null;const v=location.hash.slice(1);
-  $('#tabs').innerHTML=`<a class="tab${v==='new'?' on':''}" href="#new">Новое</a>`+ROOTS.map(r=>`<a class="tab${rid===r.id?' on':''}" href="#${enc(r.id)}">${esc(r.title)}</a>`).join('')}
+  $('#tabs').innerHTML=`<a class="tab${v.startsWith('tz')?' on':''}" href="#tz">ТЗ</a><a class="tab${v==='new'?' on':''}" href="#new">Новое</a>`+ROOTS.map(r=>`<a class="tab${rid===r.id?' on':''}" href="#${enc(r.id)}">${esc(r.title)}</a>`).join('')}
 
 // ---------- views ----------
 const COVER_ID={'ВСЕ НАШИ ФЕСТ':'1AJNKfLY1FusbbeIcBtxFI2k5M-leDIZZ'};
 function artistCover(a){const o=COVER_ID[a.name]&&a.posters.find(x=>x[0]===COVER_ID[a.name]&&x[4]);if(o)return o[4];const p=a.posters.find(x=>x[2]==='4:5'&&x[4])||a.posters.find(x=>x[4]);if(p)return p[4];const v=a.videos.find(x=>x[5]);return v?v[5]:''}
 function viewHome(){
   document.body.classList.add('home');
-  const ICO={promo:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>',cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>',print:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9V3.5h10V9"/><rect x="3.5" y="9" width="17" height="8" rx="2"/><path d="M7 14h10v6.5H7z"/></svg>',pin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-6.2-6.5-11.2a6.5 6.5 0 0 1 13 0C18.5 14.8 12 21 12 21z"/><circle cx="12" cy="9.8" r="2.3"/></svg>',new:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/></svg>'};
-  const COL=['#6b47b8','#e84a8a','#8a5cf6','#2f8f7a','#e0892f','#2f6fb5','#c9442f'];
+  const ICO={tz:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="14" height="18" rx="2"/><path d="M9 3.5h6v3H9zM8.5 11h7M8.5 15h7M8.5 19h4"/></svg>',promo:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>',cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>',print:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9V3.5h10V9"/><rect x="3.5" y="9" width="17" height="8" rx="2"/><path d="M7 14h10v6.5H7z"/></svg>',pin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-6.2-6.5-11.2a6.5 6.5 0 0 1 13 0C18.5 14.8 12 21 12 21z"/><circle cx="12" cy="9.8" r="2.3"/></svg>',new:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/></svg>'};
+  const COL=['#d6336c','#6b47b8','#e84a8a','#8a5cf6','#2f8f7a','#e0892f','#2f6fb5','#c9442f'];
   const kind=r=>r.id===PROMO_ROOT?'promo':/календар/i.test(r.title)?'cal':/печать/i.test(r.title)?'print':'pin';
   const wk=FILES.filter(f=>isRecent(f,7)).length;
   const it=ROOTS.map(r=>({h:'#'+enc(r.id),t:r.title,i:ICO[kind(r)],m:r.id===PROMO_ROOT?plural(D.promo.length,'артист','артиста','артистов'):plural(cd(r.id),'папка','папки','папок')}));
   it.unshift({h:'#new',t:'Новое',i:ICO.new,m:wk?plural(wk,'файл','файла','файлов')+' за неделю':'последние файлы'});
+  it.unshift({h:'#tz',t:'ТЗ',i:ICO.tz,m:'видео, афиши, задачи'});
   return `<div class="hbtns">`+
     it.map((x,n)=>`<a href="${x.h}"><span class="hic" style="background:${COL[n%COL.length]}">${x.i}</span><span class="htx"><b>${esc(x.t)}</b><small>${esc(x.m)}</small></span></a>`).join('')+'</div>'+foot()}
 
@@ -498,10 +532,87 @@ function viewSearch(q){const ql=q.toLowerCase();
 function foot(){return `<footer class="foot"><span>Обновлено ${fmtDate(D.updated,true)} в ${fmtTime(D.updated)}</span><span>Страница обновляется автоматически каждый день</span><span>Все ссылки открываются без входа в аккаунт</span></footer>`}
 
 // ---------- router ----------
+// ---------- ТЗ (briefs) ----------
+const TZ={items:null,loading:false,err:'',filter:'all',api:window.TZ_API||'',tok:''};
+const TZ_TYPES={video:'Видео',poster:'Афиша',other:'Другое'};
+const TZ_ST=[['new','Новое','#8a5cf6'],['work','В работе','#e0892f'],['review','На проверке','#2f6fb5'],['done','Готово','#2f8f7a']];
+const TZ_FMT=['4:5','1:1','9:16','16:9'];
+const TZ_CITY=['Пхукет','Паттайя','Нячанг','Все города'];
+const stOf=k=>TZ_ST.find(s=>s[0]===k)||TZ_ST[0];
+function tzToken(){if(TZ.tok)return TZ.tok;try{TZ.tok=localStorage.getItem('lotus-pass')||''}catch(e){}if(!TZ.tok){const m=document.cookie.match(/(?:^|; )lotus_pass=([0-9a-f]{64})/);if(m)TZ.tok=m[1]}return TZ.tok}
+async function tzCall(action,body){
+  if(!TZ.api)throw new Error('noapi');
+  const payload=Object.assign({action,token:tzToken()},body||{});
+  let r;
+  if(action==='list')r=await fetch(TZ.api+'?action=list&token='+encodeURIComponent(payload.token)+'&_='+Date.now());
+  else r=await fetch(TZ.api,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
+  const j=await r.json();if(!j.ok)throw new Error(j.error||'error');return j}
+async function tzLoad(force){
+  if(TZ.loading||(TZ.items&&!force))return;TZ.loading=true;TZ.err='';
+  try{TZ.items=(await tzCall('list')).items||[]}catch(e){TZ.err=e.message==='noapi'?'noapi':'Не удалось загрузить ТЗ: '+e.message}
+  TZ.loading=false;if(location.hash.slice(1).startsWith('tz'))route()}
+const tzDl=d=>{if(!d)return'';const t=new Date(d+'T00:00:00'),now=new Date();now.setHours(0,0,0,0);const days=Math.round((t-now)/864e5);
+  return `<span class="tz-dl${days<0?' late':days<=2?' soon':''}">до ${fmtDate(d+'T12:00:00')}${days<0?' · просрочено':days===0?' · сегодня':days===1?' · завтра':''}</span>`};
+function tzCard(x){const s=stOf(x.status);
+  return `<a class="tz-card" href="#tz/${encodeURIComponent(x.id)}"><div class="tz-top"><span class="tz-type t-${x.type}">${TZ_TYPES[x.type]||'Другое'}</span><span class="tz-st" style="--c:${s[2]}">${s[1]}</span></div>
+  <b>${esc(x.title||'Без названия')}</b><small>${esc([x.project,x.city].filter(Boolean).join(' · '))}</small>
+  <div class="tz-meta">${x.assignee?`<span>👤 ${esc(x.assignee)}</span>`:''}${tzDl(x.deadline)}${(x.formats||[]).length?`<span>${(x.formats||[]).join(' · ')}</span>`:''}</div></a>`}
+function viewTZ(v){
+  const head=`<div class="crumbs"><a href="#">Главная</a> / <span>ТЗ</span></div>`;
+  if(!TZ.api)return head+`<h1 class="h1">ТЗ</h1><div class="empty">${/github\.io$/.test(location.hostname)?'Раздел ТЗ скоро заработает — идёт подключение базы.':'Раздел ТЗ работает на сайте <a href="https://gerohelr.github.io/lotus-arena/#tz" target="_blank">gerohelr.github.io/lotus-arena</a>.'}</div>`;
+  if(!TZ.items){tzLoad();return head+`<h1 class="h1">ТЗ</h1><div class="empty">${TZ.err?esc(TZ.err):'Загружаю…'}</div>`}
+  const sub=v.slice(3);
+  if(sub==='new')return tzForm({type:TZ.filter==='all'?'poster':TZ.filter,status:'new',formats:[]},true);
+  if(sub){const x=TZ.items.find(i=>i.id===decodeURIComponent(sub));return x?tzForm(x,false):head+`<div class="empty">ТЗ не найдено. <a href="#tz">Ко всем ТЗ</a></div>`}
+  const f=TZ.filter,L=TZ.items.filter(x=>!x.archived&&(f==='all'||x.type===f));
+  const chips=[['all','Все'],...Object.entries(TZ_TYPES)].map(([k,t])=>`<button class="tz-chip${f===k?' on':''}" data-tzf="${k}">${t} <i>${k==='all'?TZ.items.filter(x=>!x.archived).length:TZ.items.filter(x=>!x.archived&&x.type===k).length}</i></button>`).join('');
+  const cols=TZ_ST.map(s=>{const C=L.filter(x=>(x.status||'new')===s[0]).sort((a,b)=>(a.deadline||'9')<(b.deadline||'9')?-1:1);
+    return `<section class="tz-col"><h3 style="--c:${s[2]}">${s[1]} <i>${C.length}</i></h3>${C.map(tzCard).join('')||'<div class="tz-none">—</div>'}</section>`}).join('');
+  return head+`<div class="tz-head"><h1 class="h1">ТЗ</h1><div class="tz-acts"><button class="tz-btn ghost" data-tzr>Обновить</button><a class="tz-btn" href="#tz/new">+ Новое ТЗ</a></div></div>
+  <div class="tz-chips">${chips}</div>${TZ.err?`<div class="empty">${esc(TZ.err)}</div>`:''}<div class="tz-board">${cols}</div>`}
+function tzForm(x,isNew){
+  const arts=[...new Set((D.promo||[]).map(a=>a.name))].sort((a,b)=>a.localeCompare(b,'ru'));
+  const opt=(arr,val)=>arr.map(o=>{const [k,t]=Array.isArray(o)?o:[o,o];return `<option value="${esc(k)}"${k===val?' selected':''}>${esc(t)}</option>`}).join('');
+  return `<div class="crumbs"><a href="#">Главная</a> / <a href="#tz">ТЗ</a> / <span>${isNew?'Новое':esc(x.title||'')}</span></div>
+  <form class="tz-form" id="tzform" data-id="${esc(x.id||'')}">
+  <div class="tz-types">${Object.entries(TZ_TYPES).map(([k,t])=>`<label><input type="radio" name="type" value="${k}"${(x.type||'poster')===k?' checked':''}><span>${t}</span></label>`).join('')}</div>
+  <label class="tz-f wide"><span>Название</span><input name="title" required value="${esc(x.title||'')}" placeholder="Например: Афиша GUF, 10 января"></label>
+  <label class="tz-f"><span>Проект / артист</span><input name="project" list="tzarts" value="${esc(x.project||'')}" placeholder="Выберите или впишите"><datalist id="tzarts">${arts.map(a=>`<option value="${esc(a)}">`).join('')}</datalist></label>
+  <label class="tz-f"><span>Город</span><select name="city"><option value=""></option>${opt(TZ_CITY,x.city)}</select></label>
+  <label class="tz-f"><span>Исполнитель</span><input name="assignee" value="${esc(x.assignee||'')}" placeholder="Дизайнер, моушн, монтаж…"></label>
+  <label class="tz-f"><span>Дедлайн</span><input type="date" name="deadline" value="${esc(x.deadline||'')}"></label>
+  <label class="tz-f"><span>Статус</span><select name="status">${opt(TZ_ST.map(s=>[s[0],s[1]]),x.status||'new')}</select></label>
+  <div class="tz-f"><span>Форматы</span><div class="tz-fmts">${TZ_FMT.map(f=>`<label><input type="checkbox" name="formats" value="${f}"${(x.formats||[]).includes(f)?' checked':''}><span>${f}</span></label>`).join('')}</div></div>
+  <label class="tz-f wide"><span>Задача (ТЗ)</span><textarea name="brief" rows="8" placeholder="Что сделать, текст на афише, референсы, пожелания…">${esc(x.brief||'')}</textarea></label>
+  <label class="tz-f wide"><span>Ссылки на исходники / референсы</span><textarea name="refs" rows="2" placeholder="Ссылки на Google Диск, фото, логотипы">${esc(x.refs||'')}</textarea></label>
+  <label class="tz-f wide"><span>Готовый результат</span><textarea name="result" rows="2" placeholder="Ссылка на готовый файл">${esc(x.result||'')}</textarea></label>
+  <label class="tz-f"><span>Кто поставил</span><input name="author" value="${esc(x.author||tzMe())}" placeholder="Ваше имя"></label>
+  ${x.updated?`<div class="tz-f"><span>Изменено</span><div class="tz-ro">${fmtDate(x.updated,true)}${x.created?' · создано '+fmtDate(x.created,true):''}</div></div>`:''}
+  <div class="tz-bar wide"><button class="tz-btn" type="submit">${isNew?'Создать ТЗ':'Сохранить'}</button><a class="tz-btn ghost" href="#tz">Отмена</a>${isNew?'':'<button class="tz-btn ghost danger" type="button" data-tzdel>В архив</button>'}<span class="tz-msg" id="tzmsg"></span></div>
+  </form>${linkify(x)}`}
+function linkify(x){const urls=((x.refs||'')+' '+(x.result||'')+' '+(x.brief||'')).match(/https?:\/\/\S+/g);return urls&&urls.length?`<div class="tz-links"><b>Ссылки</b>${[...new Set(urls)].map(u=>`<a href="${esc(u)}" target="_blank" rel="noopener">${esc(u.length>70?u.slice(0,70)+'…':u)}</a>`).join('')}</div>`:''}
+function tzMe(){try{return localStorage.getItem('tz-me')||''}catch(e){return''}}
+document.addEventListener('click',e=>{
+  const c=e.target.closest('[data-tzf]');if(c){TZ.filter=c.dataset.tzf;route();return}
+  if(e.target.closest('[data-tzr]')){TZ.items=null;tzLoad(true);route();return}
+  if(e.target.closest('[data-tzdel]')){const f=$('#tzform');if(!confirm('Убрать это ТЗ в архив?'))return;tzSave(f,{archived:true});}
+});
+document.addEventListener('submit',e=>{if(e.target.id==='tzform'){e.preventDefault();tzSave(e.target,{})}});
+async function tzSave(f,extra){
+  const fd=new FormData(f),item={id:f.dataset.id||''};
+  for(const k of ['type','title','project','city','assignee','deadline','status','brief','refs','result','author'])item[k]=(fd.get(k)||'').toString().trim();
+  item.formats=fd.getAll('formats');Object.assign(item,extra);
+  try{localStorage.setItem('tz-me',item.author)}catch(e){}
+  const m=$('#tzmsg');m.textContent='Сохраняю…';m.className='tz-msg';
+  try{const j=await tzCall('save',{item});const i=TZ.items.findIndex(x=>x.id===j.item.id);if(i>=0)TZ.items[i]=j.item;else TZ.items.push(j.item);
+    m.textContent='Сохранено';location.hash='#tz'}
+  catch(err){m.textContent='Не сохранилось: '+err.message;m.className='tz-msg bad'}}
+
 function route(){
   document.body.classList.remove('home');
   const q=$('#q').value.trim();const v=location.hash.slice(1);let cur=null,html;
   if(q.length>=2)html=viewSearch(q);
+  else if(v==='tz'||v.startsWith('tz/'))html=viewTZ(v);
   else if(v==='new')html=viewNew();
   else if(v.startsWith('a-')&&D.promo[+v.slice(2)]){cur=PROMO_ROOT;html=viewArtist(D.promo[+v.slice(2)])}
   else if(v.startsWith('f-')){cur=dec(v);html=viewFolder(cur)}
