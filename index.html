@@ -269,6 +269,10 @@ body.home .side{display:none}body.home .shell{grid-template-columns:minmax(0,1fr
 .hic{width:64px;height:64px;border-radius:18px;display:grid;place-items:center;flex:none;color:#fff}.hic svg{width:32px;height:32px}
 .htx b{display:block;font-size:18px;font-weight:700;line-height:1.2}.htx small{display:block;color:var(--muted);font-size:13px;margin-top:4px}
 @media (max-width:640px){.hbtns{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0 26px}.hbtns a{gap:8px;padding:8px 4px;border-radius:14px}.hic{width:46px;height:46px;border-radius:13px}.hic svg{width:24px;height:24px}.htx b{font-size:13.5px}.htx small{font-size:11px;margin-top:2px}}
+.tz-lab{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.tz-mic{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:5px 12px;font:600 13px var(--f-body);cursor:pointer}
+.tz-mic.sm{padding:3px 9px}.tz-mic.rec{background:#e5484d;border-color:#e5484d;color:#fff;animation:pulse 1.2s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 6px rgba(229,72,77,.25)}}
 /* ТЗ */
 .tz-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .tz-acts{display:flex;gap:8px}
@@ -538,7 +542,7 @@ const TZ={items:null,loading:false,err:'',filter:'all',api:window.TZ_API||'',tok
 const TZ_TYPES={video:'Видео',poster:'Афиша',other:'Другое'};
 const TZ_ST=[['new','Новое','#8a5cf6'],['work','В работе','#e0892f'],['review','На проверке','#2f6fb5'],['done','Готово','#2f8f7a']];
 const TZ_FMT=['4:5','1:1','9:16','16:9'];
-const TZ_CITY=['Пхукет','Паттайя','Нячанг','Все города'];
+const _tzv=1;const TZ_CITY=['Пхукет','Паттайя','Нячанг','Все города'];
 const stOf=k=>TZ_ST.find(s=>s[0]===k)||TZ_ST[0];
 function tzToken(){if(TZ.tok)return TZ.tok;try{TZ.tok=localStorage.getItem('lotus-pass')||''}catch(e){}if(!TZ.tok){const m=document.cookie.match(/(?:^|; )lotus_pass=([0-9a-f]{64})/);if(m)TZ.tok=m[1]}return TZ.tok}
 async function tzCall(action,body){
@@ -563,13 +567,14 @@ function viewTZ(v){
   if(!TZ.api)return head+`<h1 class="h1">ТЗ</h1><div class="empty">${/github\.io$/.test(location.hostname)?'Раздел ТЗ скоро заработает — идёт подключение базы.':'Раздел ТЗ работает на сайте <a href="https://gerohelr.github.io/lotus-arena/#tz" target="_blank">gerohelr.github.io/lotus-arena</a>.'}</div>`;
   if(!TZ.items){tzLoad();return head+`<h1 class="h1">ТЗ</h1><div class="empty">${TZ.err?esc(TZ.err):'Загружаю…'}</div>`}
   const sub=v.slice(3);
-  if(sub==='new')return tzForm({type:TZ.filter==='all'?'poster':TZ.filter,status:'new',formats:[]},true);
+  if(sub==='new?voice')setTimeout(()=>{const b=document.querySelector('[data-mic=brief]');if(b)b.click()},300);
+  if(sub==='new'||sub==='new?voice')return tzForm({type:TZ.filter==='all'?'poster':TZ.filter,status:'new',formats:[]},true);
   if(sub){const x=TZ.items.find(i=>i.id===decodeURIComponent(sub));return x?tzForm(x,false):head+`<div class="empty">ТЗ не найдено. <a href="#tz">Ко всем ТЗ</a></div>`}
   const f=TZ.filter,L=TZ.items.filter(x=>!x.archived&&(f==='all'||x.type===f));
   const chips=[['all','Все'],...Object.entries(TZ_TYPES)].map(([k,t])=>`<button class="tz-chip${f===k?' on':''}" data-tzf="${k}">${t} <i>${k==='all'?TZ.items.filter(x=>!x.archived).length:TZ.items.filter(x=>!x.archived&&x.type===k).length}</i></button>`).join('');
   const cols=TZ_ST.map(s=>{const C=L.filter(x=>(x.status||'new')===s[0]).sort((a,b)=>(a.deadline||'9')<(b.deadline||'9')?-1:1);
     return `<section class="tz-col"><h3 style="--c:${s[2]}">${s[1]} <i>${C.length}</i></h3>${C.map(tzCard).join('')||'<div class="tz-none">—</div>'}</section>`}).join('');
-  return head+`<div class="tz-head"><h1 class="h1">ТЗ</h1><div class="tz-acts"><button class="tz-btn ghost" data-tzr>Обновить</button><a class="tz-btn" href="#tz/new">+ Новое ТЗ</a></div></div>
+  return head+`<div class="tz-head"><h1 class="h1">ТЗ</h1><div class="tz-acts"><button class="tz-btn ghost" data-tzr>Обновить</button><a class="tz-btn ghost" href="#tz/new?voice">🎤 Голосом</a><a class="tz-btn" href="#tz/new">+ Новое ТЗ</a></div></div>
   <div class="tz-chips">${chips}</div>${TZ.err?`<div class="empty">${esc(TZ.err)}</div>`:''}<div class="tz-board">${cols}</div>`}
 function tzForm(x,isNew){
   const arts=[...new Set((D.promo||[]).map(a=>a.name))].sort((a,b)=>a.localeCompare(b,'ru'));
@@ -577,14 +582,14 @@ function tzForm(x,isNew){
   return `<div class="crumbs"><a href="#">Главная</a> / <a href="#tz">ТЗ</a> / <span>${isNew?'Новое':esc(x.title||'')}</span></div>
   <form class="tz-form" id="tzform" data-id="${esc(x.id||'')}">
   <div class="tz-types">${Object.entries(TZ_TYPES).map(([k,t])=>`<label><input type="radio" name="type" value="${k}"${(x.type||'poster')===k?' checked':''}><span>${t}</span></label>`).join('')}</div>
-  <label class="tz-f wide"><span>Название</span><input name="title" required value="${esc(x.title||'')}" placeholder="Например: Афиша GUF, 10 января"></label>
+  <label class="tz-f wide"><span class="tz-lab">Название <button type="button" class="tz-mic sm" data-mic="title">🎤</button></span><input name="title" required value="${esc(x.title||'')}" placeholder="Например: Афиша GUF, 10 января"></label>
   <label class="tz-f"><span>Проект / артист</span><input name="project" list="tzarts" value="${esc(x.project||'')}" placeholder="Выберите или впишите"><datalist id="tzarts">${arts.map(a=>`<option value="${esc(a)}">`).join('')}</datalist></label>
   <label class="tz-f"><span>Город</span><select name="city"><option value=""></option>${opt(TZ_CITY,x.city)}</select></label>
   <label class="tz-f"><span>Исполнитель</span><input name="assignee" value="${esc(x.assignee||'')}" placeholder="Дизайнер, моушн, монтаж…"></label>
   <label class="tz-f"><span>Дедлайн</span><input type="date" name="deadline" value="${esc(x.deadline||'')}"></label>
   <label class="tz-f"><span>Статус</span><select name="status">${opt(TZ_ST.map(s=>[s[0],s[1]]),x.status||'new')}</select></label>
   <div class="tz-f"><span>Форматы</span><div class="tz-fmts">${TZ_FMT.map(f=>`<label><input type="checkbox" name="formats" value="${f}"${(x.formats||[]).includes(f)?' checked':''}><span>${f}</span></label>`).join('')}</div></div>
-  <label class="tz-f wide"><span>Задача (ТЗ)</span><textarea name="brief" rows="8" placeholder="Что сделать, текст на афише, референсы, пожелания…">${esc(x.brief||'')}</textarea></label>
+  <label class="tz-f wide"><span class="tz-lab">Задача (ТЗ) <button type="button" class="tz-mic" data-mic="brief">🎤 Надиктовать</button></span><textarea name="brief" rows="8" placeholder="Что сделать, текст на афише, референсы, пожелания…">${esc(x.brief||'')}</textarea></label>
   <label class="tz-f wide"><span>Ссылки на исходники / референсы</span><textarea name="refs" rows="2" placeholder="Ссылки на Google Диск, фото, логотипы">${esc(x.refs||'')}</textarea></label>
   <label class="tz-f wide"><span>Готовый результат</span><textarea name="result" rows="2" placeholder="Ссылка на готовый файл">${esc(x.result||'')}</textarea></label>
   <label class="tz-f"><span>Кто поставил</span><input name="author" value="${esc(x.author||tzMe())}" placeholder="Ваше имя"></label>
@@ -592,6 +597,46 @@ function tzForm(x,isNew){
   <div class="tz-bar wide"><button class="tz-btn" type="submit">${isNew?'Создать ТЗ':'Сохранить'}</button><a class="tz-btn ghost" href="#tz">Отмена</a>${isNew?'':'<button class="tz-btn ghost danger" type="button" data-tzdel>В архив</button>'}<span class="tz-msg" id="tzmsg"></span></div>
   </form>${linkify(x)}`}
 function linkify(x){const urls=((x.refs||'')+' '+(x.result||'')+' '+(x.brief||'')).match(/https?:\/\/\S+/g);return urls&&urls.length?`<div class="tz-links"><b>Ссылки</b>${[...new Set(urls)].map(u=>`<a href="${esc(u)}" target="_blank" rel="noopener">${esc(u.length>70?u.slice(0,70)+'…':u)}</a>`).join('')}</div>`:''}
+// ---------- ТЗ голосом ----------
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+const MONTHS_RU=['январ','феврал','март','апрел','ма','июн','июл','август','сентябр','октябр','ноябр','декабр'];
+function tzParse(t){const s=t.toLowerCase(),o={};
+  if(/видео|ролик|рилс|reels|монтаж|сторис-видео|тизер/.test(s))o.type='video';else if(/афиш|постер|баннер|макет|ресайз|флаер|обложк/.test(s))o.type='poster';
+  const c=[['Пхукет',/пхукет|phuket/],['Паттайя',/паттай|pattaya/],['Нячанг',/нячанг|начанг|вьетнам/]].find(x=>x[1].test(s));if(c)o.city=c[0];
+  const arts=[...new Set((D.promo||[]).map(a=>a.name))];const a=arts.find(n=>s.includes(n.toLowerCase()));if(a)o.project=a;
+  const f=[];if(/4\s*(на|x|х)\s*5|четыре на пять|пост в ленту/.test(s))f.push('4:5');if(/1\s*(на|x|х)\s*1|квадрат/.test(s))f.push('1:1');if(/9\s*(на|x|х)\s*16|девять на шестнадцать|сторис|вертикал/.test(s))f.push('9:16');if(/16\s*(на|x|х)\s*9|шестнадцать на девять|горизонт|ютуб|youtube/.test(s))f.push('16:9');if(f.length)o.formats=f;
+  const now=new Date();let d=null;
+  if(/послезавтра/.test(s)){d=new Date(now);d.setDate(d.getDate()+2)}else if(/завтра/.test(s)){d=new Date(now);d.setDate(d.getDate()+1)}else if(/сегодня/.test(s))d=new Date(now);
+  const MR='(\\d{1,2})\\s+(январ|феврал|март|апрел|ма[яй]|июн|июл|август|сентябр|октябр|ноябр|декабр)';
+  const m=s.match(new RegExp('(?:до|к|дедлайн|срок)\\s+'+MR))||s.match(new RegExp(MR));
+  if(m){const mi=MONTHS_RU.findIndex(x=>m[2].startsWith(x));d=new Date(now.getFullYear(),mi,+m[1]);if(d<new Date(now.getFullYear(),now.getMonth(),now.getDate()-1))d.setFullYear(d.getFullYear()+1)}
+  if(d)o.deadline=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  const who=t.match(/(?:исполнитель|делает|ответственн(?:ый|ая)|поручить)\s*[:—-]?\s*([А-ЯЁ][а-яё]+)/i);if(who)o.assignee=who[1].charAt(0).toUpperCase()+who[1].slice(1);
+  const first=t.split(/[.!?\n]/)[0].trim();o.title=(first.length>4&&first.length<60?first:[o.type==='video'?'Видео':o.type==='poster'?'Афиша':'ТЗ',o.project,o.city].filter(Boolean).join(' · '));
+  o.title=o.title.charAt(0).toUpperCase()+o.title.slice(1);
+  return o}
+let rec=null;
+function tzMic(btn,target,onDone){
+  if(!SR){toast('Голосовой ввод в этом браузере недоступен — нажмите 🎤 на клавиатуре телефона и надиктуйте');target.focus();return}
+  if(rec){rec.stop();return}
+  rec=new SR();rec.lang='ru-RU';rec.continuous=true;rec.interimResults=true;
+  const base=target.value?target.value.replace(/\s*$/,' '):'';let fin='';
+  btn.classList.add('rec');btn.dataset.l=btn.innerHTML;btn.innerHTML='⏹ Стоп';
+  rec.onresult=e=>{let tmp='';for(let i=e.resultIndex;i<e.results.length;i++){const r=e.results[i];if(r.isFinal)fin+=r[0].transcript+' ';else tmp+=r[0].transcript}target.value=base+fin+tmp};
+  rec.onerror=e=>{toast(e.error==='not-allowed'?'Разрешите доступ к микрофону в настройках браузера':'Ошибка микрофона: '+e.error)};
+  rec.onend=()=>{btn.classList.remove('rec');btn.innerHTML=btn.dataset.l;rec=null;target.value=target.value.trim();if(onDone&&fin.trim())onDone(fin.trim())};
+  try{rec.start()}catch(e){toast('Не удалось включить микрофон');rec=null;btn.classList.remove('rec');btn.innerHTML=btn.dataset.l}}
+function tzFill(o){const f=$('#tzform');if(!f)return;
+  if(o.type){const r=f.querySelector(`input[name=type][value=${o.type}]`);if(r)r.checked=true}
+  const set=(n,v)=>{const el=f.elements[n];if(el&&v&&!el.value)el.value=v};
+  set('title',o.title);set('project',o.project);set('city',o.city);set('deadline',o.deadline);set('assignee',o.assignee);
+  (o.formats||[]).forEach(x=>{const c=f.querySelector(`input[name=formats][value="${x}"]`);if(c)c.checked=true});
+  toast('Заполнил поля из голоса — проверьте и нажмите «Создать ТЗ»')}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-mic]');if(!b)return;e.preventDefault();
+  const f=$('#tzform');const t=f.elements[b.dataset.mic];
+  tzMic(b,t,b.dataset.mic==='brief'?txt=>tzFill(tzParse(txt)):null)});
+
 function tzMe(){try{return localStorage.getItem('tz-me')||''}catch(e){return''}}
 document.addEventListener('click',e=>{
   const c=e.target.closest('[data-tzf]');if(c){TZ.filter=c.dataset.tzf;route();return}
