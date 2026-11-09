@@ -648,5 +648,31 @@ window.GATE.then(()=>fetch('data.json',{cache:'no-store'})).then(r=>{if(!r.ok)th
 })();
 </script>
 
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<style>
+#pushbtn{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:30;display:flex;align-items:center;gap:8px;padding:11px 16px;border-radius:999px;border:0;background:#e84a8a;color:#fff;font:600 14px var(--f-body,system-ui);box-shadow:0 6px 20px rgba(0,0,0,.35);cursor:pointer}
+#pushbtn[hidden]{display:none}#pushtip{position:fixed;left:16px;right:16px;bottom:calc(72px + env(safe-area-inset-bottom,0px));z-index:30;max-width:420px;margin-left:auto;background:var(--surface,#1a1628);color:var(--fg,#fff);border:1px solid var(--line,#333);border-radius:14px;padding:14px 16px;font-size:14px;line-height:1.45;box-shadow:0 6px 20px rgba(0,0,0,.35)}#pushtip[hidden]{display:none}
+</style>
+<button id="pushbtn" type="button" hidden>🔔 Включить уведомления</button>
+<div id="pushtip" hidden></div>
+<script>
+(function(){const APP='0379e9be-de27-4fc2-a603-8ccad2584740';if(!APP)return;
+const btn=document.getElementById('pushbtn'),tip=document.getElementById('pushtip');
+const ios=/iPhone|iPad|iPod/.test(navigator.userAgent),standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+const say=t=>{tip.innerHTML=t;tip.hidden=false;clearTimeout(say.t);say.t=setTimeout(()=>tip.hidden=true,9000)};
+window.OneSignalDeferred=window.OneSignalDeferred||[];
+OneSignalDeferred.push(async function(OneSignal){
+  try{await OneSignal.init({appId:APP,safari_web_id:'web.onesignal.auto.665e4130-cb92-443f-ad4d-8156961c0995',serviceWorkerPath:'lotus-arena/OneSignalSDKWorker.js',serviceWorkerParam:{scope:'/lotus-arena/'},allowLocalhostAsSecureOrigin:true});}catch(e){console.log('push init',e)}
+  const upd=()=>{const on=OneSignal.Notifications.permission&&OneSignal.User.PushSubscription.optedIn;btn.hidden=!!on||(!('Notification' in window)&&!ios)};
+  upd();OneSignal.Notifications.addEventListener('permissionChange',upd);OneSignal.User.PushSubscription.addEventListener('change',upd);
+  btn.onclick=async()=>{
+    if(ios&&!standalone){say('На iPhone уведомления работают только в приложении: <b>Поделиться → На экран «Домой»</b>, затем откройте Lotus Arena с экрана и нажмите эту кнопку ещё раз.');return}
+    if(!('Notification' in window)){say('Этот браузер не поддерживает уведомления. Обновите iOS до 16.4 или новее.');return}
+    try{await OneSignal.Notifications.requestPermission();if(OneSignal.Notifications.permission){await OneSignal.User.PushSubscription.optIn();say('Готово! Уведомления включены.')}else say('Уведомления запрещены. Включите их: Настройки → Уведомления → Lotus Arena.')}catch(e){say('Не получилось: '+e)}
+    upd()};
+});
+if(ios&&!standalone){btn.hidden=false}
+})();
+</script>
 
 </body></html>
