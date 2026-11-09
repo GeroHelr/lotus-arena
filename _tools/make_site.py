@@ -18,17 +18,25 @@ gate = """<style>
 #gate .er{color:#ff6b6b;font-size:13px;min-height:18px;margin-top:8px}
 </style>
 <div id="gate" hidden><form><img src="logo.png" alt=""><h2>LOTUS ARENA</h2><p>Материалы · вход по паролю</p>
-<input type="password" placeholder="Пароль" autocomplete="current-password" autofocus><button>Войти</button><div class="er"></div></form></div>
+<input type="password" placeholder="Пароль" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" autofocus><button>Войти</button><div class="er"></div></form></div>
 <script>
 window.GATE=new Promise(ok=>{const H='@@H@@',K='lotus-pass';
-const sha=async t=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t)))].map(b=>b.toString(16).padStart(2,'0')).join('');
+const shaJS=t=>{const u=unescape(encodeURIComponent(t)),K=[],H0=[];let n=2,c=0;const f=x=>(x-Math.floor(x))*4294967296|0;
+ while(c<64){let p=1;for(let d=2;d*d<=n;d++)if(n%d===0){p=0;break}if(p){if(c<8)H0[c]=f(Math.pow(n,1/2));K[c++]=f(Math.pow(n,1/3))}n++}
+ const b=[];for(let i=0;i<u.length;i++)b.push(u.charCodeAt(i));const l=b.length*8;b.push(128);while(b.length%64!==56)b.push(0);
+ for(let i=7;i>=0;i--)b.push(i>3?0:(l>>>(i*8))&255);const h=H0.slice(),r=(x,k)=>x>>>k|x<<(32-k);
+ for(let o=0;o<b.length;o+=64){const w=[];for(let i=0;i<64;i++){if(i<16)w[i]=b[o+i*4]<<24|b[o+i*4+1]<<16|b[o+i*4+2]<<8|b[o+i*4+3];else{const x=w[i-15],y=w[i-2];w[i]=(w[i-16]+(r(x,7)^r(x,18)^x>>>3)+w[i-7]+(r(y,17)^r(y,19)^y>>>10))|0}}
+  let [A,B,C,D,E,F,G,I]=h;for(let i=0;i<64;i++){const t1=(I+(r(E,6)^r(E,11)^r(E,25))+(E&F^~E&G)+K[i]+w[i])|0,t2=((r(A,2)^r(A,13)^r(A,22))+(A&B^A&C^B&C))|0;I=G;G=F;F=E;E=(D+t1)|0;D=C;C=B;B=A;A=(t1+t2)|0}
+  [A,B,C,D,E,F,G,I].forEach((v,i)=>h[i]=(h[i]+v)|0)}return h.map(v=>(v>>>0).toString(16).padStart(8,'0')).join('')};
+const sha=async t=>{try{if(window.crypto&&crypto.subtle)return [...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t)))].map(b=>b.toString(16).padStart(2,'0')).join('')}catch(e){}return shaJS(t)};
+const norm=v=>v.replace(/[‐-―−]/g,'-').replace(/\\s+/g,'');
 let saved='';try{saved=localStorage.getItem(K)||''}catch(e){}
 if(saved!==H){const m=document.cookie.match(/(?:^|; )lotus_pass=([0-9a-f]{64})/);if(m)saved=m[1]}
 const keep=()=>{try{localStorage.setItem(K,H)}catch(e){}try{document.cookie='lotus_pass='+H+'; max-age=31536000; path=/; SameSite=Lax; Secure'}catch(e){}};
 if(saved===H){keep();ok();return}
 const g=document.getElementById('gate');g.hidden=false;
-g.querySelector('form').onsubmit=async e=>{e.preventDefault();const v=await sha(g.querySelector('input').value.trim());
- if(v===H){keep();g.remove();ok()}else{g.querySelector('.er').textContent='Неверный пароль'}};});
+g.querySelector('form').onsubmit=async e=>{e.preventDefault();const er=g.querySelector('.er');er.textContent='Проверяю…';let v='';try{v=await sha(norm(g.querySelector('input').value))}catch(x){er.textContent='Ошибка браузера: '+x;return}
+ if(v===H){keep();g.remove();ok()}else{er.textContent='Неверный пароль — проверьте большие и маленькие буквы'}};});
 </script>
 """.replace('@@H@@', H)
 out = '<!doctype html>\n<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">\n<meta name="robots" content="noindex,nofollow">\n' + s.replace('</style>', '</style>\n</head><body>', 1)
