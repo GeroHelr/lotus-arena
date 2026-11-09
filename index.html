@@ -405,6 +405,7 @@ const hidden=t=>t.startsWith('_')||t.startsWith('.')||/^(claude|clode)\b/i.test(
 const TECH_DIR=/^(layers2?|davinci layers|mg_sloi|mg_davinci|motion|kit|placeholders(_png)?|\d*\s*моушен слои|lotus promo titles( v\d+)?|.*_davinci)$/i;
 const TECH_FILE=/^T\d+[a-z]?_|alpha|rgba|prores|4444|(^|_)(HUD|FX|GFX|FRAME|SLOT|MG|DIFFERENCE|LOGO)(_|\.|$)|_hold[._]|TITLES_SFX|FOOTAGE_MUSIC|^prev_|^clean_v?\d|^Timeline \d|placeholder/i,TECH_FILE2=/_VIDEO\./;
 const isRecent=(f,days)=>Date.now()-new Date(f.c)<days*864e5;
+const isPrintRoot=id=>{const r=ROOTS.find(x=>x.id===id);return !!r&&/печать/i.test(r.title)};const inPrint=f=>isPrintRoot(ROOT_OF[f.p]);
 
 // ---------- previews (lazy-loaded bundles of small webp images) ----------
 const bundles={};
@@ -464,7 +465,7 @@ function viewHome(){
   const ICO={tz:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="14" height="18" rx="2"/><path d="M9 3.5h6v3H9zM8.5 11h7M8.5 15h7M8.5 19h4"/></svg>',promo:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>',cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>',print:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9V3.5h10V9"/><rect x="3.5" y="9" width="17" height="8" rx="2"/><path d="M7 14h10v6.5H7z"/></svg>',pin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-6.2-6.5-11.2a6.5 6.5 0 0 1 13 0C18.5 14.8 12 21 12 21z"/><circle cx="12" cy="9.8" r="2.3"/></svg>',new:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/></svg>'};
   const COL=['#d6336c','#6b47b8','#e84a8a','#8a5cf6','#2f8f7a','#e0892f','#2f6fb5','#c9442f'];
   const kind=r=>r.id===PROMO_ROOT?'promo':/календар/i.test(r.title)?'cal':/печать/i.test(r.title)?'print':'pin';
-  const wk=FILES.filter(f=>isRecent(f,7)).length;
+  const wk=FILES.filter(f=>isRecent(f,7)&&!inPrint(f)).length;
   const it=ROOTS.map(r=>({h:'#'+enc(r.id),t:r.title,i:ICO[kind(r)],m:r.id===PROMO_ROOT?plural(D.promo.length,'артист','артиста','артистов'):plural(cd(r.id),'папка','папки','папок')}));
   it.unshift({h:'#new',t:'Новое',i:ICO.new,m:wk?plural(wk,'файл','файла','файлов')+' за неделю':'последние файлы'});
   it.unshift({h:'#tz',t:'ТЗ',i:ICO.tz,m:'видео, афиши, задачи'});
@@ -482,7 +483,7 @@ function viewFolder(id){
   if(k.length)h+=`<h3 class="blk">Папки</h3><div class="grid">`+k.map(c=>{const n=(KIDS[c]||[]).length,nf=(BYP[c]||[]).length;return `<a class="card" href="#${enc(c)}"><span class="ic">${ICON_FOLDER}</span><span class="t"><b title="${esc(F[c].t)}">${esc(F[c].t)}</b><small>${[n?plural(n,'папка','папки','папок'):'',nf?plural(nf,'файл','файла','файлов'):'',SEQ[c]?'кадры':''].filter(Boolean).join(' · ')||'пусто'}</small></span></a>`}).join('')+'</div>';
   if(own.length||SEQ[id]){h+=`<h3 class="blk">Файлы <span class="meta">${own.length}</span></h3>`;if(SEQ[id])h+=`<div class="tiles" style="margin-bottom:12px">${seqTile(id)}</div>`;h+=tiles(own,48,'f',false)}
   else if(!k.length)h+=`<div class="empty" style="margin-top:20px">Папка пустая или файлы в ней ещё загружаются в Google Диск.</div>`;
-  if(k.length){const rec=FILES.filter(x=>x.p!==id&&isRecent(x,30)&&under(x.p,id));if(rec.length)h+=`<h3 class="blk">Новое во вложенных папках <span class="meta">за 30 дней · ${rec.length}</span></h3>`+tiles(rec,12,'fr',true)}
+  if(k.length&&!isPrintRoot(ROOT_OF[id])){const rec=FILES.filter(x=>x.p!==id&&isRecent(x,30)&&under(x.p,id));if(rec.length)h+=`<h3 class="blk">Новое во вложенных папках <span class="meta">за 30 дней · ${rec.length}</span></h3>`+tiles(rec,12,'fr',true)}
   return h+foot()}
 
 function crumbs(p){return '<nav class="crumbs" aria-label="Путь"><a href="#">Главная</a>'+p.map((a,i)=>`<i>/</i>`+(i<p.length-1?`<a href="#${enc(a.id)}">${esc(ARTIST[a.id]?ARTIST[a.id].name:nm(a))}</a>`:`<span>${esc(ARTIST[a.id]?ARTIST[a.id].name:nm(a))}</span>`)).join('')+'</nav>'}
@@ -517,9 +518,9 @@ function viewArtist(a){
   return h+foot()}
 
 let newFilter='all';
-function newList(){return FILES.filter(f=>isRecent(f,30)&&(newFilter==='all'||ROOT_OF[f.p]===newFilter))}
+function newList(){return FILES.filter(f=>isRecent(f,30)&&!inPrint(f)&&(newFilter==='all'||ROOT_OF[f.p]===newFilter))}
 function viewNew(){const list=newList();
-  let h=`<div class="fhead"><div><div class="eyebrow">Последние 30 дней</div><h1>Новые файлы</h1><span class="meta">${plural(list.length,'файл','файла','файлов')} · обновляется каждый день</span></div></div><div class="filters" style="margin-top:16px">`+[['all','Все']].concat(ROOTS.map(r=>[r.id,r.title])).map(([v,t])=>`<button class="fchip" type="button" data-nf="${v}" aria-pressed="${newFilter===v}">${esc(t)}</button>`).join('')+'</div>';
+  let h=`<div class="fhead"><div><div class="eyebrow">Последние 30 дней</div><h1>Новые файлы</h1><span class="meta">${plural(list.length,'файл','файла','файлов')} · обновляется каждый день</span></div></div><div class="filters" style="margin-top:16px">`+[['all','Все']].concat(ROOTS.filter(r=>!isPrintRoot(r.id)).map(r=>[r.id,r.title])).map(([v,t])=>`<button class="fchip" type="button" data-nf="${v}" aria-pressed="${newFilter===v}">${esc(t)}</button>`).join('')+'</div>';
   return h+(list.length?tiles(list,48,'new',true):'<div class="empty">Новых файлов нет.</div>')+foot()}
 
 function viewSearch(q){const ql=q.toLowerCase();
@@ -678,7 +679,7 @@ document.addEventListener('click',e=>{
   const nf=e.target.closest('[data-nf]');if(nf){newFilter=nf.dataset.nf;route();return}
   const cb=e.target.closest('[data-city]');if(cb){cityF[cb.dataset.a]=cb.dataset.city;route();return}
   const m=e.target.closest('[data-more]');if(m){const key=m.dataset.more,lim=+m.dataset.limit*3,v=location.hash.slice(1);let list,sd=true;
-    if(key==='home')list=FILES.filter(f=>isRecent(f,7));
+    if(key==='home')list=FILES.filter(f=>isRecent(f,7)&&!inPrint(f));
     else if(key==='new')list=newList();
     else if(key==='s'){const ql=$('#q').value.trim().toLowerCase();list=FILES.filter(f=>f.t.toLowerCase().includes(ql));sd=false}
     else if(key==='f'){list=(BYP[dec(v)]||[]).slice().sort((a,b)=>b.c.localeCompare(a.c));sd=false}
