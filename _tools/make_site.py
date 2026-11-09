@@ -10,6 +10,7 @@ call = "fetch('data.json',{cache:'no-store'})"
 assert call in s
 s = s.replace(call, "window.GATE.then(()=>" + call + ")", 1)
 gate = """<style>
+#gate[hidden]{display:none!important}
 #gate{position:fixed;inset:0;z-index:999;display:grid;place-items:center;background:var(--bg,#0f0c18);padding:16px}
 #gate form{width:100%;max-width:340px;text-align:center}
 #gate img{width:64px}#gate h2{font-size:20px;margin:12px 0 4px;letter-spacing:.06em}#gate p{color:var(--muted,#999);font-size:14px;margin:0 0 18px}
@@ -20,7 +21,7 @@ gate = """<style>
 #gate form.bad input{border-color:#ff6b6b;animation:sh .3s}@keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 </style>
 <div id="gate" hidden><form action="javascript:void(0)" onsubmit="return false"><img src="logo.png" alt=""><h2>LOTUS ARENA</h2><p>Материалы · вход по паролю</p><!--v3-->
-<input type="password" placeholder="Пароль" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" autofocus><button type="submit">Войти</button><div class="er"></div><div class="vv">версия 3</div></form></div>
+<input type="password" placeholder="Пароль" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" autofocus><button type="submit">Войти</button><div class="er"></div><div class="vv">версия 4</div></form></div>
 <script>
 window.GATE=new Promise(ok=>{const H='@@H@@',K='lotus-pass';
 const shaJS=t=>{const u=unescape(encodeURIComponent(t)),K=[],H0=[];let n=2,c=0;const f=x=>(x-Math.floor(x))*4294967296|0;
@@ -38,7 +39,7 @@ const norm=v=>lat(norm0(v));
 let saved='';try{saved=localStorage.getItem(K)||''}catch(e){}
 if(saved!==H){const m=document.cookie.match(/(?:^|; )lotus_pass=([0-9a-f]{64})/);if(m)saved=m[1]}
 const keep=()=>{try{localStorage.setItem(K,H)}catch(e){}try{document.cookie='lotus_pass='+H+'; max-age=31536000; path=/; SameSite=Lax; Secure'}catch(e){}};
-if(saved===H){keep();ok();return}
+if(saved===H){keep();const g0=document.getElementById('gate');if(g0)g0.remove();ok();return}
 const g=document.getElementById('gate');g.hidden=false;
 const go=async e=>{if(e)e.preventDefault();const er=g.querySelector('.er');er.textContent='Проверяю…';let v='';try{v=await sha(norm(g.querySelector('input').value))}catch(x){er.textContent='Ошибка браузера: '+x;return}
  if(v===H){keep();g.remove();ok()}else{const fm=g.querySelector('form');fm.classList.remove('bad');void fm.offsetWidth;fm.classList.add('bad');er.textContent='Неверный пароль. Проверьте большие и маленькие буквы.'}};
