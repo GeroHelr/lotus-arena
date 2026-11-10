@@ -400,7 +400,7 @@ const RU=[[/\bnha ?trang\b|\bnhatrang\b/gi,'Нячанг'],[/\bphuket\b/gi,'Пх
  [/\beng\b/gi,'Англ.'],[/\brus\b/gi,'Рус.'],[/\bthai\b/gi,'Тайский'],[/\binfo\b/gi,'Инфо'],[/\bnetwork\b/gi,'Сеть'],[/\bteaser\b/gi,'Тизер'],[/\btitles\b/gi,'Титры'],[/\bpost\b/gi,'Пост'],[/\bsrc\b/gi,'Исходники'],[/\bvector\b/gi,'Вектор'],
  [/\bmonochrome\b/gi,'Монохром'],[/\bweb\b/gi,'Веб'],[/\btextured logo\b/gi,'текстурный логотип'],[/\bnew logo\b/gi,'новый логотип'],[/\bphuket new\b/gi,'Пхукет новое'],[/\bpromo\b/gi,'промо'],[/\bfood festival\b/gi,'фестиваль еды'],[/\brussian season\b/gi,'Русский сезон'],[/\bdrone photo\b/gi,'Фото с дрона']];
 function ru(t){let s=t;RU.forEach(([re,r])=>{s=s.replace(re,r)});s=s.replace(/\s{2,}/g,' ').trim();return s.charAt(0).toUpperCase()+s.slice(1)}
-const hidden=t=>t.startsWith('_')||t.startsWith('.')||/^(claude|clode)\b/i.test(t.trim());
+const hidden=t=>/^\s*([_.~]|(claude|clode|клод)(?![a-zа-я]))/i.test(t);
 // technical motion-graphics folders and layer files (renders for editing, not for sharing)
 const TECH_DIR=/^(layers2?|davinci layers|mg_sloi|mg_davinci|motion|kit|placeholders(_png)?|\d*\s*моушен слои|lotus promo titles( v\d+)?|.*_davinci)$/i;
 const TECH_FILE=/^T\d+[a-z]?_|alpha|rgba|prores|4444|(^|_)(HUD|FX|GFX|FRAME|SLOT|MG|DIFFERENCE|LOGO)(_|\.|$)|_hold[._]|TITLES_SFX|FOOTAGE_MUSIC|^prev_|^clean_v?\d|^Timeline \d|placeholder/i,TECH_FILE2=/_VIDEO\./;
@@ -434,7 +434,7 @@ function build(data){
   Object.keys(F).forEach(id=>cnt(id));
   Object.keys(F).forEach(id=>{if(!F[id].root&&has[id]===0)delete F[id]});
   Object.keys(KIDS).forEach(p=>{KIDS[p]=(KIDS[p]||[]).filter(k=>F[k])});
-  (data.promo||[]).forEach((a,i)=>{a.name=ru(a.name);a.i=i;a.key=a.folder||('a'+i);ARTIST[a.key]=a});
+  data.promo=(data.promo||[]).filter(a=>!hidden(a.name));(data.promo||[]).forEach((a,i)=>{a.name=ru(a.name);a.i=i;a.key=a.folder||('a'+i);ARTIST[a.key]=a});
   try{JSON.parse(store.get('lotus-open')||'[]').forEach(i=>open.add(i))}catch(e){}
 }
 const CD={};function cd(id){if(CD[id]!=null)return CD[id];let n=0;(KIDS[id]||[]).forEach(k=>{n+=1+cd(k)});return CD[id]=n}
