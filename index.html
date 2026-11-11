@@ -427,7 +427,7 @@ function build(data){
   Object.values(F).forEach(f=>{if(f.p&&F[f.p])(KIDS[f.p]=KIDS[f.p]||[]).push(f.id)});
   Object.values(KIDS).forEach(a=>a.sort((x,y)=>F[x].t.localeCompare(F[y].t,'ru',{numeric:true})));
   Object.values(F).forEach(f=>{let x=f,g=0;while(x&&!x.root&&g++<60)x=F[x.p];ROOT_OF[f.id]=x?x.id:null});
-  PSD=(data.files||[]).filter(r=>F[r[1]]&&/\.(psd|psb|3psd)$/i.test(r[2])&&!/^[._~]/.test(r[2])).map(([id,p,t,k,c,s,th])=>({id,p,t,k:'psd',c,s,th,root:ROOT_OF[p],anc:path(p).map(x=>x.id),pp:path(p).map(x=>x.root?x.root.title:x.t)})).sort((a,b)=>(ROOTS.findIndex(r=>r.id===a.root)-ROOTS.findIndex(r=>r.id===b.root))||a.pp.join('/').localeCompare(b.pp.join('/'),'ru',{numeric:true})||a.t.localeCompare(b.t,'ru',{numeric:true}));
+  PSD=(data.files||[]).filter(r=>F[r[1]]&&/\.(psd|psb|3psd)$/i.test(r[2])&&!/^[._~]/.test(r[2])).map(([id,p,t,k,c,s,th])=>({id,p,t,k:'psd',c,s,th,root:ROOT_OF[p],anc:path(p).map(x=>x.id),pp:path(p).map(x=>x.root?x.root.title:x.t)})).filter(f=>f.root===PROMO_ROOT).sort((a,b)=>a.pp.join('/').localeCompare(b.pp.join('/'),'ru',{numeric:true})||a.t.localeCompare(b.t,'ru',{numeric:true}));
   FILES=(data.files||[]).filter(r=>F[r[1]]&&r[3]!=='psd'&&!/\.(psd|psb|3psd)$/i.test(r[2])&&!(r[3]==='vid'&&(TECH_FILE.test(r[2])||TECH_FILE2.test(r[2])))).map(([id,p,t,k,c,s,th])=>({id,p,t,k,c,s,th})).sort((a,b)=>b.c.localeCompare(a.c));
   FILES.forEach(f=>(BYP[f.p]=BYP[f.p]||[]).push(f));
   (data.seqs||[]).forEach(([id,n,ext,th])=>{SEQ[id]={n,ext,th}});
@@ -533,7 +533,7 @@ function psdGroups(L,skip){const G=[];L.forEach(f=>{const g=G[G.length-1];if(g&&
 function viewPSD(){
   const roots=ROOTS.filter(r=>PSD.some(f=>f.root===r.id));
   const L=PSD.filter(f=>psdFilter==='all'||f.root===psdFilter);
-  let h=`<div class="crumbs"><a href="#">Главная</a> / <span>PSD</span></div><div class="fhead"><div><div class="eyebrow">Исходники Photoshop</div><h1>PSD файлы</h1><span class="meta">${plural(L.length,'файл','файла','файлов')} · только рабочие файлы Photoshop, по папкам</span></div></div><div class="filters" style="margin-top:16px">`+[['all','Все']].concat(roots.map(r=>[r.id,r.title])).map(([v,t])=>`<button class="fchip" type="button" data-pf="${v}" aria-pressed="${psdFilter===v}">${esc(t)} <span style="opacity:.55">${v==='all'?PSD.length:PSD.filter(f=>f.root===v).length}</span></button>`).join('')+'</div>';
+  let h=`<div class="crumbs"><a href="#">Главная</a> / <span>PSD</span></div><div class="fhead"><div><div class="eyebrow">Исходники Photoshop</div><h1>PSD промо артистов</h1><span class="meta">${plural(L.length,'файл','файла','файлов')} Photoshop · по артистам и папкам</span></div></div>`;
   if(!L.length)return h+'<div class="empty">PSD файлов пока нет.</div>'+foot();
   h+=psdGroups(L,1);
   return h+foot()}
