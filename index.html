@@ -427,7 +427,7 @@ function build(data){
   Object.values(F).forEach(f=>{if(f.p&&F[f.p])(KIDS[f.p]=KIDS[f.p]||[]).push(f.id)});
   Object.values(KIDS).forEach(a=>a.sort((x,y)=>F[x].t.localeCompare(F[y].t,'ru',{numeric:true})));
   Object.values(F).forEach(f=>{let x=f,g=0;while(x&&!x.root&&g++<60)x=F[x.p];ROOT_OF[f.id]=x?x.id:null});
-  PSD=(data.files||[]).filter(r=>F[r[1]]&&(r[3]==='psd'||/\.(psd|psb)$/i.test(r[2]))&&!/^[._~]/.test(r[2])).map(([id,p,t,k,c,s,th])=>({id,p,t,k:'psd',c,s,th,root:ROOT_OF[p],pp:path(p).map(x=>x.root?x.root.title:x.t)})).sort((a,b)=>(ROOTS.findIndex(r=>r.id===a.root)-ROOTS.findIndex(r=>r.id===b.root))||a.pp.join('/').localeCompare(b.pp.join('/'),'ru',{numeric:true})||a.t.localeCompare(b.t,'ru',{numeric:true}));
+  PSD=(data.files||[]).filter(r=>F[r[1]]&&/\.(psd|psb|3psd)$/i.test(r[2])&&!/^[._~]/.test(r[2])).map(([id,p,t,k,c,s,th])=>({id,p,t,k:'psd',c,s,th,root:ROOT_OF[p],anc:path(p).map(x=>x.id),pp:path(p).map(x=>x.root?x.root.title:x.t)})).sort((a,b)=>(ROOTS.findIndex(r=>r.id===a.root)-ROOTS.findIndex(r=>r.id===b.root))||a.pp.join('/').localeCompare(b.pp.join('/'),'ru',{numeric:true})||a.t.localeCompare(b.t,'ru',{numeric:true}));
   FILES=(data.files||[]).filter(r=>F[r[1]]&&r[3]!=='psd'&&!/\.(psd|psb|3psd)$/i.test(r[2])&&!(r[3]==='vid'&&(TECH_FILE.test(r[2])||TECH_FILE2.test(r[2])))).map(([id,p,t,k,c,s,th])=>({id,p,t,k,c,s,th})).sort((a,b)=>b.c.localeCompare(a.c));
   FILES.forEach(f=>(BYP[f.p]=BYP[f.p]||[]).push(f));
   (data.seqs||[]).forEach(([id,n,ext,th])=>{SEQ[id]={n,ext,th}});
@@ -503,7 +503,7 @@ function viewArtist(a){
   const p=a.folder?path(a.folder).slice(0,2):path(PROMO_ROOT);const cities=[...new Set(a.videos.map(v=>v[4]).concat(a.posters.map(x=>x[3])).filter(Boolean))];
   const cf=cityF[a.key]||'all';const okc=c=>cf==='all'||c===cf;
   let h=crumbs(p.concat(a.folder?[]:[]));
-  h+=`<div class="fhead"><div><div class="eyebrow">Промо артиста</div><h1>${esc(a.name)}</h1><span class="meta">${plural(a.videos.length,'промо-ролик','промо-ролика','промо-роликов')} · ${plural(a.posters.length,'афиша','афиши','афиш')}</span></div>${a.folder?`<div class="factions"><a class="btn" href="${folderUrl(a.folder)}" target="_blank" rel="noopener">${ICON_EXT}Исходники в Google Диске</a></div>`:''}</div>`;
+  h+=`<div class="fhead"><div><div class="eyebrow">Промо артиста</div><h1>${esc(a.name)}</h1><span class="meta">${plural(a.videos.length,'промо-ролик','промо-ролика','промо-роликов')} · ${plural(a.posters.length,'афиша','афиши','афиш')}${a.folder&&PSD.some(f=>f.anc.includes(a.folder))?` · <a href="#" data-topsd>${plural(PSD.filter(f=>f.anc.includes(a.folder)).length,'PSD файл','PSD файла','PSD файлов')}</a>`:''}</span></div>${a.folder?`<div class="factions"><a class="btn" href="${folderUrl(a.folder)}" target="_blank" rel="noopener">${ICON_EXT}Исходники в Google Диске</a></div>`:''}</div>`;
   if(cities.length>1)h+='<div class="filters" style="margin-top:16px">'+[['all','Все города']].concat(cities.map(c=>[c,c])).map(([v,t])=>`<button class="fchip" type="button" data-city="${esc(v)}" data-a="${esc(a.key)}" aria-pressed="${cf===v}">${esc(t)}</button>`).join('')+'</div>';
   const vv=a.videos.filter(v=>okc(v[4]));
   const vert=vv.filter(v=>v[2]==='9:16'),hor=vv.filter(v=>v[2]==='16:9');
@@ -518,6 +518,8 @@ function viewArtist(a){
   h+=['4:5','1:1','9:16','16:9'].map(f=>{const L=ps.filter(x=>x[2]===f);
     return `<section class="fmtsec"><div class="fmthead"><span class="shape" style="--ar:${AR[f]}"></span><div class="fmtname"><b>${f}</b><span>${FD[f][0]} · ${FD[f][1]}</span></div><span class="st ${L.length?'ok':'no'}">${L.length?plural(L.length,'афиша','афиши','афиш'):'нет — нужен ресайз'}</span></div>`+
     (L.length?`<div class="pgrid f${f.replace(':','x')}">`+L.map(x=>`<a class="tile poster" style="--ar:${AR[f]}" href="${fileUrl(x[0])}" target="_blank" rel="noopener" title="${esc(x[1])}">${pv(x[4],'JPG')}<span class="cap"><b>${esc(x[1])}</b><small>${x[3]?`<span class="city">${esc(x[3])}</span>`:''}${f}</small></span></a>`).join('')+'</div>':`<div class="missing"><b>Нет афиши ${f}</b>Сделайте ресайз из основной афиши — она появится здесь автоматически.</div>`)+'</section>'}).join('');
+  const AP=a.folder?PSD.filter(f=>f.anc.includes(a.folder)):[];
+  if(AP.length)h+=`<h3 class="blk" id="psd">PSD исходники <span class="meta">${plural(AP.length,'файл','файла','файлов')} Photoshop</span></h3>`+psdGroups(AP,2);
   return h+foot()}
 
 let newFilter='all',psdFilter='all',PSD=[];
@@ -526,13 +528,14 @@ function viewNew(){const list=newList();
   let h=`<div class="fhead"><div><div class="eyebrow">Последние 30 дней</div><h1>Новые файлы</h1><span class="meta">${plural(list.length,'файл','файла','файлов')} · обновляется каждый день</span></div></div><div class="filters" style="margin-top:16px">`+[['all','Все']].concat(ROOTS.filter(r=>!isPrintRoot(r.id)).map(r=>[r.id,r.title])).map(([v,t])=>`<button class="fchip" type="button" data-nf="${v}" aria-pressed="${newFilter===v}">${esc(t)}</button>`).join('')+'</div>';
   return h+(list.length?tiles(list,48,'new',true):'<div class="empty">Новых файлов нет.</div>')+foot()}
 
+function psdGroups(L,skip){const G=[];L.forEach(f=>{const g=G[G.length-1];if(g&&g.p===f.p)g.l.push(f);else G.push({p:f.p,pp:f.pp,l:[f]})});
+  return G.map(g=>`<section class="psd-g"><div class="psd-h"><div><b>${esc(g.pp.slice(skip).join(' / ')||g.pp[g.pp.length-1])}</b><small>${esc(g.pp.slice(0,skip).join(' / '))} · ${plural(g.l.length,'файл','файла','файлов')}</small></div><a class="btn sm" href="${folderUrl(g.p)}" target="_blank" rel="noopener">${ICON_EXT}Папка</a></div>${tiles(g.l,999,'psd'+g.p,false)}</section>`).join('')}
 function viewPSD(){
   const roots=ROOTS.filter(r=>PSD.some(f=>f.root===r.id));
   const L=PSD.filter(f=>psdFilter==='all'||f.root===psdFilter);
   let h=`<div class="crumbs"><a href="#">Главная</a> / <span>PSD</span></div><div class="fhead"><div><div class="eyebrow">Исходники Photoshop</div><h1>PSD файлы</h1><span class="meta">${plural(L.length,'файл','файла','файлов')} · только рабочие файлы Photoshop, по папкам</span></div></div><div class="filters" style="margin-top:16px">`+[['all','Все']].concat(roots.map(r=>[r.id,r.title])).map(([v,t])=>`<button class="fchip" type="button" data-pf="${v}" aria-pressed="${psdFilter===v}">${esc(t)} <span style="opacity:.55">${v==='all'?PSD.length:PSD.filter(f=>f.root===v).length}</span></button>`).join('')+'</div>';
   if(!L.length)return h+'<div class="empty">PSD файлов пока нет.</div>'+foot();
-  const G=[];L.forEach(f=>{const g=G[G.length-1];if(g&&g.p===f.p)g.l.push(f);else G.push({p:f.p,pp:f.pp,l:[f]})});
-  h+=G.map(g=>`<section class="psd-g"><div class="psd-h"><div><b>${esc(g.pp.slice(1).join(' / ')||g.pp[0])}</b><small>${esc(g.pp[0])} · ${plural(g.l.length,'файл','файла','файлов')}</small></div><a class="btn sm" href="${folderUrl(g.p)}" target="_blank" rel="noopener">${ICON_EXT}Папка</a></div>${tiles(g.l,999,'psd'+g.p,false)}</section>`).join('');
+  h+=psdGroups(L,1);
   return h+foot()}
 
 function viewSearch(q){const ql=q.toLowerCase();
@@ -690,6 +693,7 @@ document.addEventListener('click',e=>{
   const c=e.target.closest('[data-copy]');
   if(c){const u=c.dataset.copy;try{navigator.clipboard.writeText(u).then(()=>toast('Ссылка скопирована'),()=>toast(u))}catch(err){toast(u)}return}
   const nf=e.target.closest('[data-nf]');if(nf){newFilter=nf.dataset.nf;route();return}
+  const tp=e.target.closest('[data-topsd]');if(tp){e.preventDefault();const s=document.getElementById('psd');if(s)s.scrollIntoView({behavior:'smooth'});return}
   const pf=e.target.closest('[data-pf]');if(pf){psdFilter=pf.dataset.pf;route();return}
   const cb=e.target.closest('[data-city]');if(cb){cityF[cb.dataset.a]=cb.dataset.city;route();return}
   const m=e.target.closest('[data-more]');if(m){const key=m.dataset.more,lim=+m.dataset.limit*3,v=location.hash.slice(1);let list,sd=true;
