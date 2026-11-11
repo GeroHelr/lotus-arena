@@ -163,6 +163,7 @@ h3.blk .meta{font-weight:400}
 .file .tm{font-size:12.5px;color:var(--faint);font-variant-numeric:tabular-nums}
 .more{display:block;width:100%;border:0;border-top:1px solid var(--line);background:none;padding:10px;color:var(--accent);font-weight:600;cursor:pointer}
 .filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.psd-art{margin:30px 0 10px;padding-top:6px}.psd-ah{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px}.psd-ah h2{margin:0;font-size:22px}.psd-ah .meta{margin-right:auto}.psd-art .psd-g{margin:14px 0}
 .psd-g{margin:26px 0}.psd-h{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);margin-bottom:12px}.psd-h b{display:block;font-size:15px}.psd-h small{color:var(--muted);font-size:12.5px}
 .fchip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 11px;font-size:13px;cursor:pointer}
 .fchip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
@@ -518,8 +519,8 @@ function viewArtist(a){
   h+=['4:5','1:1','9:16','16:9'].map(f=>{const L=ps.filter(x=>x[2]===f);
     return `<section class="fmtsec"><div class="fmthead"><span class="shape" style="--ar:${AR[f]}"></span><div class="fmtname"><b>${f}</b><span>${FD[f][0]} · ${FD[f][1]}</span></div><span class="st ${L.length?'ok':'no'}">${L.length?plural(L.length,'афиша','афиши','афиш'):'нет — нужен ресайз'}</span></div>`+
     (L.length?`<div class="pgrid f${f.replace(':','x')}">`+L.map(x=>`<a class="tile poster" style="--ar:${AR[f]}" href="${fileUrl(x[0])}" target="_blank" rel="noopener" title="${esc(x[1])}">${pv(x[4],'JPG')}<span class="cap"><b>${esc(x[1])}</b><small>${x[3]?`<span class="city">${esc(x[3])}</span>`:''}${f}</small></span></a>`).join('')+'</div>':`<div class="missing"><b>Нет афиши ${f}</b>Сделайте ресайз из основной афиши — она появится здесь автоматически.</div>`)+'</section>'}).join('');
-  const AP=a.folder?PSD.filter(f=>f.anc.includes(a.folder)):[];
-  if(AP.length)h+=`<h3 class="blk" id="psd">PSD исходники <span class="meta">${plural(AP.length,'файл','файла','файлов')} Photoshop</span></h3>`+psdGroups(AP,2);
+  const AP=a.folder?PSD.filter(f=>f.anc.includes(a.folder)&&(cf==='all'||psdCity(f)===cf||psdCity(f).includes(cf))):[];
+  if(AP.length)h+=`<h3 class="blk" id="psd">PSD исходники <span class="meta">${plural(AP.length,'файл','файла','файлов')} Photoshop</span></h3>`+psdByCity(AP,0);
   return h+foot()}
 
 let newFilter='all',psdFilter='all',PSD=[];
@@ -528,14 +529,23 @@ function viewNew(){const list=newList();
   let h=`<div class="fhead"><div><div class="eyebrow">Последние 30 дней</div><h1>Новые файлы</h1><span class="meta">${plural(list.length,'файл','файла','файлов')} · обновляется каждый день</span></div></div><div class="filters" style="margin-top:16px">`+[['all','Все']].concat(ROOTS.filter(r=>!isPrintRoot(r.id)).map(r=>[r.id,r.title])).map(([v,t])=>`<button class="fchip" type="button" data-nf="${v}" aria-pressed="${newFilter===v}">${esc(t)}</button>`).join('')+'</div>';
   return h+(list.length?tiles(list,48,'new',true):'<div class="empty">Новых файлов нет.</div>')+foot()}
 
-function psdGroups(L,skip){const G=[];L.forEach(f=>{const g=G[G.length-1];if(g&&g.p===f.p)g.l.push(f);else G.push({p:f.p,pp:f.pp,l:[f]})});
-  return G.map(g=>`<section class="psd-g"><div class="psd-h"><div><b>${esc(g.pp.slice(skip).join(' / ')||g.pp[g.pp.length-1])}</b><small>${esc(g.pp.slice(0,skip).join(' / '))} · ${plural(g.l.length,'файл','файла','файлов')}</small></div><a class="btn sm" href="${folderUrl(g.p)}" target="_blank" rel="noopener">${ICON_EXT}Папка</a></div>${tiles(g.l,999,'psd'+g.p,false)}</section>`).join('')}
+const PCITY=[['Пхукет',/пхукет|phuket/],['Паттайя',/паттай|pattaya|patt\b|_patt/],['Нячанг',/нячанг|начанг|nha ?trang|nhatrang|вьетнам|vietnam|_viet/],['Бали',/бали|bali/],['Азия · тур',/азия|asia|tour/]];
+const PCORD=['Пхукет','Паттайя','Пхукет и Паттайя','Нячанг','Бали','Азия · тур','Общие'];
+function psdCity(f){if(f.city)return f.city;const segs=f.pp.slice(2).reverse().concat([f.t]);
+  for(const s0 of segs){const s=s0.normalize('NFC').toLowerCase();const m=PCITY.filter(c=>c[1].test(s)).map(c=>c[0]);
+    if(m.length){f.city=m.includes('Пхукет')&&m.includes('Паттайя')?'Пхукет и Паттайя':m[0];return f.city}}
+  const ar=ARTIST[f.anc[1]];const ONE={'XOLIDAYBOY':'Пхукет','Limba':'Пхукет'};if(ar&&ONE[ar.name])return f.city=ONE[ar.name];if(ar){const cs=[...new Set(ar.videos.map(v=>v[4]).concat(ar.posters.map(x=>x[3])).filter(c=>['Пхукет','Паттайя','Нячанг'].includes(c)))];if(cs.length===1)return f.city=cs[0]}
+  return f.city='Общие'}
+function psdByCity(L,lvl){const by={};L.forEach(f=>(by[psdCity(f)]=by[psdCity(f)]||[]).push(f));
+  return PCORD.filter(c=>by[c]).map(c=>`<section class="psd-g"><div class="psd-h"><div><b${lvl?' style="font-size:14px"':''}>${esc(c)}</b><small>${plural(by[c].length,'файл','файла','файлов')} Photoshop</small></div>${[...new Set(by[c].map(f=>f.p))].length===1?`<a class="btn sm" href="${folderUrl(by[c][0].p)}" target="_blank" rel="noopener">${ICON_EXT}Папка</a>`:''}</div>${tiles(by[c],999,'psd'+c+(by[c][0].anc[1]||''),false)}</section>`).join('')}
 function viewPSD(){
-  const roots=ROOTS.filter(r=>PSD.some(f=>f.root===r.id));
-  const L=PSD.filter(f=>psdFilter==='all'||f.root===psdFilter);
-  let h=`<div class="crumbs"><a href="#">Главная</a> / <span>PSD</span></div><div class="fhead"><div><div class="eyebrow">Исходники Photoshop</div><h1>PSD промо артистов</h1><span class="meta">${plural(L.length,'файл','файла','файлов')} Photoshop · по артистам и папкам</span></div></div>`;
+  const cities=PCORD.filter(c=>PSD.some(f=>psdCity(f)===c));
+  const L=PSD.filter(f=>psdFilter==='all'||psdCity(f)===psdFilter);
+  let h=`<div class="crumbs"><a href="#">Главная</a> / <span>PSD</span></div><div class="fhead"><div><div class="eyebrow">Исходники Photoshop</div><h1>PSD промо артистов</h1><span class="meta">${plural(L.length,'файл','файла','файлов')} · по артистам и городам</span></div></div><div class="filters" style="margin-top:16px">`+[['all','Все города']].concat(cities.map(c=>[c,c])).map(([v,t])=>`<button class="fchip" type="button" data-pf="${esc(v)}" aria-pressed="${psdFilter===v}">${esc(t)} <span style="opacity:.55">${v==='all'?PSD.length:PSD.filter(f=>psdCity(f)===v).length}</span></button>`).join('')+'</div>';
   if(!L.length)return h+'<div class="empty">PSD файлов пока нет.</div>'+foot();
-  h+=psdGroups(L,1);
+  const arts={};L.forEach(f=>{const k=f.anc[1]||'';(arts[k]=arts[k]||[]).push(f)});
+  h+=Object.keys(arts).sort((a,b)=>{const n=k=>ARTIST[k]?ARTIST[k].name:(arts[k][0].pp[1]||'');return n(a).localeCompare(n(b),'ru')}).map(k=>{const nmA=ARTIST[k]?ARTIST[k].name:(arts[k][0].pp[1]||'Без артиста');
+    return `<div class="psd-art"><div class="psd-ah"><h2>${esc(nmA)}</h2><span class="meta">${plural(arts[k].length,'файл','файла','файлов')}</span>${F[k]?`<a class="btn sm" href="#${enc(k)}">Промо артиста</a>`:''}<a class="btn sm" href="${folderUrl(k)}" target="_blank" rel="noopener">${ICON_EXT}Папка</a></div>${psdByCity(arts[k],1)}</div>`}).join('');
   return h+foot()}
 
 function viewSearch(q){const ql=q.toLowerCase();
