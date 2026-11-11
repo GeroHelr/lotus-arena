@@ -163,6 +163,7 @@ h3.blk .meta{font-weight:400}
 .file .tm{font-size:12.5px;color:var(--faint);font-variant-numeric:tabular-nums}
 .more{display:block;width:100%;border:0;border-top:1px solid var(--line);background:none;padding:10px;color:var(--accent);font-weight:600;cursor:pointer}
 .filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.psd-g{margin:26px 0}.psd-h{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);margin-bottom:12px}.psd-h b{display:block;font-size:15px}.psd-h small{color:var(--muted);font-size:12.5px}
 .fchip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 11px;font-size:13px;cursor:pointer}
 .fchip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
 
@@ -426,6 +427,7 @@ function build(data){
   Object.values(F).forEach(f=>{if(f.p&&F[f.p])(KIDS[f.p]=KIDS[f.p]||[]).push(f.id)});
   Object.values(KIDS).forEach(a=>a.sort((x,y)=>F[x].t.localeCompare(F[y].t,'ru',{numeric:true})));
   Object.values(F).forEach(f=>{let x=f,g=0;while(x&&!x.root&&g++<60)x=F[x.p];ROOT_OF[f.id]=x?x.id:null});
+  PSD=(data.files||[]).filter(r=>F[r[1]]&&(r[3]==='psd'||/\.(psd|psb)$/i.test(r[2]))&&!/^[._~]/.test(r[2])).map(([id,p,t,k,c,s,th])=>({id,p,t,k:'psd',c,s,th,root:ROOT_OF[p],pp:path(p).map(x=>x.root?x.root.title:x.t)})).sort((a,b)=>(ROOTS.findIndex(r=>r.id===a.root)-ROOTS.findIndex(r=>r.id===b.root))||a.pp.join('/').localeCompare(b.pp.join('/'),'ru',{numeric:true})||a.t.localeCompare(b.t,'ru',{numeric:true}));
   FILES=(data.files||[]).filter(r=>F[r[1]]&&r[3]!=='psd'&&!/\.(psd|psb|3psd)$/i.test(r[2])&&!(r[3]==='vid'&&(TECH_FILE.test(r[2])||TECH_FILE2.test(r[2])))).map(([id,p,t,k,c,s,th])=>({id,p,t,k,c,s,th})).sort((a,b)=>b.c.localeCompare(a.c));
   FILES.forEach(f=>(BYP[f.p]=BYP[f.p]||[]).push(f));
   (data.seqs||[]).forEach(([id,n,ext,th])=>{SEQ[id]={n,ext,th}});
@@ -455,7 +457,7 @@ function treeLi(id,cur,cp){const k=(id===PROMO_ROOT||artistOf(id))?(id===PROMO_R
   return `<li><div class="node${id===cur?' cur':''}"><button class="tw${k.length?'':' leaf'}" type="button" data-tw="${id}" aria-expanded="${isOpen}" aria-label="Развернуть">${CHEV}</button><a href="#${enc(id)}" title="${esc(F[id].t)}">${esc(id===PROMO_ROOT?F[id].root.title:(ARTIST[id]?ARTIST[id].name:nm(F[id])))}</a></div>${k.length&&isOpen?'<ul>'+k.map(c=>treeLi(c,cur,cp)).join('')+'</ul>':''}</li>`}
 function renderSide(cur){const cp=new Set(cur?path(cur).map(a=>a.id):[]);$('#side').innerHTML='<h4>Структура</h4><div class="tree"><ul>'+ROOTS.map(r=>treeLi(r.id,cur,cp)).join('')+'</ul></div>'}
 function renderTabs(cur){const rid=cur?ROOT_OF[cur]:null;const v=location.hash.slice(1);
-  $('#tabs').innerHTML=`<a class="tab${v.startsWith('tz')?' on':''}" href="#tz">ТЗ</a><a class="tab${v==='new'?' on':''}" href="#new">Новое</a>`+ROOTS.map(r=>`<a class="tab${rid===r.id?' on':''}" href="#${enc(r.id)}">${esc(r.title)}</a>`).join('')}
+  $('#tabs').innerHTML=`<a class="tab${v.startsWith('tz')?' on':''}" href="#tz">ТЗ</a><a class="tab${v==='new'?' on':''}" href="#new">Новое</a>`+ROOTS.map(r=>`<a class="tab${rid===r.id?' on':''}" href="#${enc(r.id)}">${esc(r.title)}</a>`).join('')+`<a class="tab${v==='psd'?' on':''}" href="#psd">PSD</a>`}
 
 // ---------- views ----------
 const COVER_ID={'ВСЕ НАШИ ФЕСТ':'1AJNKfLY1FusbbeIcBtxFI2k5M-leDIZZ'};
@@ -463,12 +465,13 @@ function artistCover(a){const o=COVER_ID[a.name]&&a.posters.find(x=>x[0]===COVER
 function viewHome(){
   document.body.classList.add('home');
   const ICO={tz:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="14" height="18" rx="2"/><path d="M9 3.5h6v3H9zM8.5 11h7M8.5 15h7M8.5 19h4"/></svg>',promo:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>',cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>',print:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9V3.5h10V9"/><rect x="3.5" y="9" width="17" height="8" rx="2"/><path d="M7 14h10v6.5H7z"/></svg>',pin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-6.2-6.5-11.2a6.5 6.5 0 0 1 13 0C18.5 14.8 12 21 12 21z"/><circle cx="12" cy="9.8" r="2.3"/></svg>',new:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/></svg>'};
-  const COL=['#d6336c','#6b47b8','#e84a8a','#8a5cf6','#2f8f7a','#e0892f','#2f6fb5','#c9442f'];
+  const COL=['#d6336c','#6b47b8','#e84a8a','#8a5cf6','#2f8f7a','#e0892f','#2f6fb5','#c9442f','#1f6fd1'];
   const kind=r=>r.id===PROMO_ROOT?'promo':/календар/i.test(r.title)?'cal':/печать/i.test(r.title)?'print':'pin';
   const wk=FILES.filter(f=>isRecent(f,7)&&!inPrint(f)).length;
   const it=ROOTS.map(r=>({h:'#'+enc(r.id),t:r.title,i:ICO[kind(r)],m:r.id===PROMO_ROOT?plural(D.promo.length,'артист','артиста','артистов'):plural(cd(r.id),'папка','папки','папок')}));
   it.unshift({h:'#new',t:'Новое',i:ICO.new,m:wk?plural(wk,'файл','файла','файлов')+' за неделю':'последние файлы'});
   it.unshift({h:'#tz',t:'ТЗ',i:ICO.tz,m:'видео, афиши, задачи'});
+  if(PSD.length)it.push({h:'#psd',t:'PSD',i:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="M8 16V8h2.2a2 2 0 0 1 0 4H8M17 9.3c-.4-.6-1-.9-1.7-.9-.9 0-1.5.5-1.5 1.2 0 1.8 3.4 1 3.4 3 0 .8-.7 1.4-1.7 1.4-.8 0-1.5-.4-1.9-1"/></svg>',m:plural(PSD.length,'исходник','исходника','исходников')});
   return `<div class="hbtns">`+
     it.map((x,n)=>`<a href="${x.h}"><span class="hic" style="background:${COL[n%COL.length]}">${x.i}</span><span class="htx"><b>${esc(x.t)}</b><small>${esc(x.m)}</small></span></a>`).join('')+'</div>'+foot()}
 
@@ -517,11 +520,20 @@ function viewArtist(a){
     (L.length?`<div class="pgrid f${f.replace(':','x')}">`+L.map(x=>`<a class="tile poster" style="--ar:${AR[f]}" href="${fileUrl(x[0])}" target="_blank" rel="noopener" title="${esc(x[1])}">${pv(x[4],'JPG')}<span class="cap"><b>${esc(x[1])}</b><small>${x[3]?`<span class="city">${esc(x[3])}</span>`:''}${f}</small></span></a>`).join('')+'</div>':`<div class="missing"><b>Нет афиши ${f}</b>Сделайте ресайз из основной афиши — она появится здесь автоматически.</div>`)+'</section>'}).join('');
   return h+foot()}
 
-let newFilter='all';
+let newFilter='all',psdFilter='all',PSD=[];
 function newList(){return FILES.filter(f=>isRecent(f,30)&&!inPrint(f)&&(newFilter==='all'||ROOT_OF[f.p]===newFilter))}
 function viewNew(){const list=newList();
   let h=`<div class="fhead"><div><div class="eyebrow">Последние 30 дней</div><h1>Новые файлы</h1><span class="meta">${plural(list.length,'файл','файла','файлов')} · обновляется каждый день</span></div></div><div class="filters" style="margin-top:16px">`+[['all','Все']].concat(ROOTS.filter(r=>!isPrintRoot(r.id)).map(r=>[r.id,r.title])).map(([v,t])=>`<button class="fchip" type="button" data-nf="${v}" aria-pressed="${newFilter===v}">${esc(t)}</button>`).join('')+'</div>';
   return h+(list.length?tiles(list,48,'new',true):'<div class="empty">Новых файлов нет.</div>')+foot()}
+
+function viewPSD(){
+  const roots=ROOTS.filter(r=>PSD.some(f=>f.root===r.id));
+  const L=PSD.filter(f=>psdFilter==='all'||f.root===psdFilter);
+  let h=`<div class="crumbs"><a href="#">Главная</a> / <span>PSD</span></div><div class="fhead"><div><div class="eyebrow">Исходники Photoshop</div><h1>PSD файлы</h1><span class="meta">${plural(L.length,'файл','файла','файлов')} · только рабочие файлы Photoshop, по папкам</span></div></div><div class="filters" style="margin-top:16px">`+[['all','Все']].concat(roots.map(r=>[r.id,r.title])).map(([v,t])=>`<button class="fchip" type="button" data-pf="${v}" aria-pressed="${psdFilter===v}">${esc(t)} <span style="opacity:.55">${v==='all'?PSD.length:PSD.filter(f=>f.root===v).length}</span></button>`).join('')+'</div>';
+  if(!L.length)return h+'<div class="empty">PSD файлов пока нет.</div>'+foot();
+  const G=[];L.forEach(f=>{const g=G[G.length-1];if(g&&g.p===f.p)g.l.push(f);else G.push({p:f.p,pp:f.pp,l:[f]})});
+  h+=G.map(g=>`<section class="psd-g"><div class="psd-h"><div><b>${esc(g.pp.slice(1).join(' / ')||g.pp[0])}</b><small>${esc(g.pp[0])} · ${plural(g.l.length,'файл','файла','файлов')}</small></div><a class="btn sm" href="${folderUrl(g.p)}" target="_blank" rel="noopener">${ICON_EXT}Папка</a></div>${tiles(g.l,999,'psd'+g.p,false)}</section>`).join('');
+  return h+foot()}
 
 function viewSearch(q){const ql=q.toLowerCase();
   const hl=s=>{const i=s.toLowerCase().indexOf(ql);return i<0?esc(s):esc(s.slice(0,i))+'<mark>'+esc(s.slice(i,i+q.length))+'</mark>'+esc(s.slice(i+q.length))};
@@ -661,6 +673,7 @@ function route(){
   if(q.length>=2)html=viewSearch(q);
   else if(v==='tz'||v.startsWith('tz/'))html=viewTZ(v);
   else if(v==='new')html=viewNew();
+  else if(v==='psd')html=viewPSD();
   else if(v.startsWith('a-')&&D.promo[+v.slice(2)]){cur=PROMO_ROOT;html=viewArtist(D.promo[+v.slice(2)])}
   else if(v.startsWith('f-')){cur=dec(v);html=viewFolder(cur)}
   else html=viewHome();
@@ -677,6 +690,7 @@ document.addEventListener('click',e=>{
   const c=e.target.closest('[data-copy]');
   if(c){const u=c.dataset.copy;try{navigator.clipboard.writeText(u).then(()=>toast('Ссылка скопирована'),()=>toast(u))}catch(err){toast(u)}return}
   const nf=e.target.closest('[data-nf]');if(nf){newFilter=nf.dataset.nf;route();return}
+  const pf=e.target.closest('[data-pf]');if(pf){psdFilter=pf.dataset.pf;route();return}
   const cb=e.target.closest('[data-city]');if(cb){cityF[cb.dataset.a]=cb.dataset.city;route();return}
   const m=e.target.closest('[data-more]');if(m){const key=m.dataset.more,lim=+m.dataset.limit*3,v=location.hash.slice(1);let list,sd=true;
     if(key==='home')list=FILES.filter(f=>isRecent(f,7)&&!inPrint(f));
