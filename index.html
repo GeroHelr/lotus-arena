@@ -404,7 +404,7 @@ const RU=[[/\bnha ?trang\b|\bnhatrang\b/gi,'Нячанг'],[/\bphuket\b/gi,'Пх
 function ru(t){let s=t;RU.forEach(([re,r])=>{s=s.replace(re,r)});s=s.replace(/\s{2,}/g,' ').trim();return s.charAt(0).toUpperCase()+s.slice(1)}
 const hidden=t=>/^\s*([_.~]|(claude|clode|клод)(?![a-zа-я]))/i.test(t);
 // technical motion-graphics folders and layer files (renders for editing, not for sharing)
-const TECH_DIR=/^(layers2?|davinci layers|mg_sloi|mg_davinci|motion|kit|placeholders(_png)?|\d*\s*моушен слои|lotus promo titles( v\d+)?|.*_davinci)$/i;
+const TECH_DIR=/^(layers2?|davinci layers|mg_sloi|mg_davinci|motion|kit|placeholders(_png)?|\d*\s*моушен слои|lotus promo titles( v\d+)?|.*_davinci|(\d+\s*)?исходники|src|sources?)$/i;
 const TECH_FILE=/^T\d+[a-z]?_|alpha|rgba|prores|4444|(^|_)(HUD|FX|GFX|FRAME|SLOT|MG|DIFFERENCE|LOGO)(_|\.|$)|_hold[._]|TITLES_SFX|FOOTAGE_MUSIC|^prev_|^clean_v?\d|^Timeline \d|placeholder/i,TECH_FILE2=/_VIDEO\./;
 const isRecent=(f,days)=>Date.now()-new Date(f.c)<days*864e5;
 const isPrintRoot=id=>{const r=ROOTS.find(x=>x.id===id);return !!r&&/печать/i.test(r.title)};const inPrint=f=>isPrintRoot(ROOT_OF[f.p]);
@@ -429,7 +429,8 @@ function build(data){
   Object.values(KIDS).forEach(a=>a.sort((x,y)=>F[x].t.localeCompare(F[y].t,'ru',{numeric:true})));
   Object.values(F).forEach(f=>{let x=f,g=0;while(x&&!x.root&&g++<60)x=F[x.p];ROOT_OF[f.id]=x?x.id:null});
   PSD=(data.files||[]).filter(r=>F[r[1]]&&/\.(psd|psb|3psd)$/i.test(r[2])&&!/^[._~]/.test(r[2])).map(([id,p,t,k,c,s,th])=>({id,p,t,k:'psd',c,s,th,root:ROOT_OF[p],anc:path(p).map(x=>x.id),pp:path(p).map(x=>x.root?x.root.title:x.t)})).filter(f=>f.root===PROMO_ROOT).sort((a,b)=>a.pp.join('/').localeCompare(b.pp.join('/'),'ru',{numeric:true})||a.t.localeCompare(b.t,'ru',{numeric:true}));
-  FILES=(data.files||[]).filter(r=>F[r[1]]&&r[3]!=='psd'&&!/\.(psd|psb|3psd)$/i.test(r[2])&&!(r[3]==='vid'&&(TECH_FILE.test(r[2])||TECH_FILE2.test(r[2])))).map(([id,p,t,k,c,s,th])=>({id,p,t,k,c,s,th})).sort((a,b)=>b.c.localeCompare(a.c));
+  const PV=new Set((data.promo||[]).flatMap(a=>a.videos.map(v=>v[0])));
+  FILES=(data.files||[]).filter(r=>!(r[3]==='vid'&&ROOT_OF[r[1]]===PROMO_ROOT&&!PV.has(r[0]))).filter(r=>F[r[1]]&&r[3]!=='psd'&&!/\.(psd|psb|3psd)$/i.test(r[2])&&!(r[3]==='vid'&&(TECH_FILE.test(r[2])||TECH_FILE2.test(r[2])))).map(([id,p,t,k,c,s,th])=>({id,p,t,k,c,s,th})).sort((a,b)=>b.c.localeCompare(a.c));
   FILES.forEach(f=>(BYP[f.p]=BYP[f.p]||[]).push(f));
   (data.seqs||[]).forEach(([id,n,ext,th])=>{SEQ[id]={n,ext,th}});
   // hide folders that have no files anywhere inside (empty leftovers on Drive)
@@ -437,6 +438,7 @@ function build(data){
   Object.keys(F).forEach(id=>cnt(id));
   Object.keys(F).forEach(id=>{if(!F[id].root&&has[id]===0)delete F[id]});
   Object.keys(KIDS).forEach(p=>{KIDS[p]=(KIDS[p]||[]).filter(k=>F[k])});
+  {const AL={'5sta family':'ВСЕ НАШИ ФЕСТ','5 sta family':'ВСЕ НАШИ ФЕСТ','5ivesta family':'ВСЕ НАШИ ФЕСТ'},M={};(data.promo||[]).forEach(a=>{const n=AL[a.name.trim().toLowerCase()]||a.name;if(M[n]){const ids=new Set(M[n].videos.map(v=>v[0]));a.videos.forEach(v=>{if(!ids.has(v[0]))M[n].videos.push(v)});const pi=new Set(M[n].posters.map(v=>v[0]));a.posters.forEach(v=>{if(!pi.has(v[0]))M[n].posters.push(v)});if(!M[n].folder)M[n].folder=a.folder}else{a.name=n;M[n]=a}});data.promo=Object.values(M)}
   data.promo=(data.promo||[]).filter(a=>!hidden(a.name));(data.promo||[]).forEach((a,i)=>{a.name=ru(a.name);a.i=i;a.key=a.folder||('a'+i);ARTIST[a.key]=a});
   try{JSON.parse(store.get('lotus-open')||'[]').forEach(i=>open.add(i))}catch(e){}
 }
