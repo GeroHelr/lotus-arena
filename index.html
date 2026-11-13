@@ -283,8 +283,10 @@ body.home .side{display:none}body.home .shell{grid-template-columns:minmax(0,1fr
 .tz-chips{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 18px}
 .tz-chip{padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:500 14px var(--f-body);cursor:pointer}
 .tz-chip.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}.tz-chip i{font-style:normal;opacity:.6;margin-left:4px}
-.tz-board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;align-items:start}
-@media(max-width:1000px){.tz-board{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.tz-board{grid-template-columns:minmax(0,1fr)}}
+.tz-board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:start}
+.tz-card{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;touch-action:pan-y}.tz-lift{opacity:.3}.tz-ghost{position:fixed;left:0;top:0;z-index:999;pointer-events:none;box-shadow:0 18px 40px rgba(0,0,0,.35);margin:0}.tz-dragging,.tz-dragging *{cursor:grabbing!important}.tz-col.tz-over{outline:2px dashed var(--accent);outline-offset:-2px;background:color-mix(in srgb,var(--accent) 10%,var(--surface-2))}
+.tz-hint{font-size:12.5px;color:var(--muted);margin:-4px 0 10px}.tz-voice{display:flex;flex-direction:column;gap:6px;margin-bottom:6px}.tz-voice small{color:var(--muted);font-size:12.5px;line-height:1.4}.tz-mic.big{font-size:16px;padding:14px 18px;justify-content:center}.tz-filled{box-shadow:0 0 0 2px var(--accent)!important;transition:box-shadow .3s}
+
 .tz-col{background:var(--surface-2);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:10px;min-height:80px}
 .tz-col h3{margin:2px 4px 2px;font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}.tz-col h3::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--c)}.tz-col h3 i{font-style:normal;color:var(--muted);font-weight:500}
 .tz-none{color:var(--faint);text-align:center;padding:8px}
@@ -308,6 +310,7 @@ body.home .side{display:none}body.home .shell{grid-template-columns:minmax(0,1fr
 .tz-ro{padding:11px 0;color:var(--muted);font-size:14px}
 .tz-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:4px}.tz-msg{color:var(--muted);font-size:14px}.tz-msg.bad{color:#e5484d}
 .tz-links{max-width:900px;margin-top:22px;display:flex;flex-direction:column;gap:6px;font-size:14px}.tz-links a{color:#e84a8a;word-break:break-all}
+@media(max-width:560px){.tz-board{gap:6px}.tz-col{padding:6px;gap:6px;border-radius:10px}.tz-col h3{font-size:12px;gap:5px;margin:2px 2px}.tz-card{padding:8px;border-radius:9px}.tz-card b{font-size:12.5px;line-height:1.25}.tz-card small{font-size:11px}.tz-card .tz-meta{font-size:10.5px;gap:4px}.tz-card .tz-top{flex-wrap:wrap;gap:4px}.tz-card .tz-st{display:none}}
 </style>
 </head><body>
 
@@ -568,10 +571,11 @@ function foot(){return `<footer class="foot"><span>Обновлено ${fmtDate(
 // ---------- ТЗ (briefs) ----------
 const TZ={items:null,loading:false,err:'',filter:'all',api:window.TZ_API||'',tok:''};
 const TZ_TYPES={video:'Видео',poster:'Афиша',other:'Другое'};
-const TZ_ST=[['new','Новое','#8a5cf6'],['work','В работе','#e0892f'],['review','На проверке','#2f6fb5'],['done','Готово','#2f8f7a']];
+const TZ_ST=[['new','Новое','#8a5cf6'],['work','В работе','#e0892f'],['done','Готово','#2f8f7a']];
+const stKey=k=>k==='review'?'work':(k||'new');
 const TZ_FMT=['4:5','1:1','9:16','16:9'];
 const _tzv=1;const TZ_CITY=['Пхукет','Паттайя','Нячанг','Все города'];
-const stOf=k=>TZ_ST.find(s=>s[0]===k)||TZ_ST[0];
+const stOf=k=>TZ_ST.find(s=>s[0]===stKey(k))||TZ_ST[0];
 function tzToken(){if(TZ.tok)return TZ.tok;try{TZ.tok=localStorage.getItem('lotus-pass')||''}catch(e){}if(!TZ.tok){const m=document.cookie.match(/(?:^|; )lotus_pass=([0-9a-f]{64})/);if(m)TZ.tok=m[1]}return TZ.tok}
 async function tzCall(action,body){
   if(!TZ.api)throw new Error('noapi');
@@ -587,7 +591,7 @@ async function tzLoad(force){
 const tzDl=d=>{if(!d)return'';const t=new Date(d+'T00:00:00'),now=new Date();now.setHours(0,0,0,0);const days=Math.round((t-now)/864e5);
   return `<span class="tz-dl${days<0?' late':days<=2?' soon':''}">до ${fmtDate(d+'T12:00:00')}${days<0?' · просрочено':days===0?' · сегодня':days===1?' · завтра':''}</span>`};
 function tzCard(x){const s=stOf(x.status);
-  return `<a class="tz-card" href="#tz/${encodeURIComponent(x.id)}"><div class="tz-top"><span class="tz-type t-${x.type}">${TZ_TYPES[x.type]||'Другое'}</span><span class="tz-st" style="--c:${s[2]}">${s[1]}</span></div>
+  return `<a class="tz-card" data-tzid="${esc(x.id)}" href="#tz/${encodeURIComponent(x.id)}"><div class="tz-top"><span class="tz-type t-${x.type}">${TZ_TYPES[x.type]||'Другое'}</span><span class="tz-st" style="--c:${s[2]}">${s[1]}</span></div>
   <b>${esc(x.title||'Без названия')}</b><small>${esc([x.project,x.city].filter(Boolean).join(' · '))}</small>
   <div class="tz-meta">${x.assignee?`<span>👤 ${esc(x.assignee)}</span>`:''}${tzDl(x.deadline)}${(x.formats||[]).length?`<span>${(x.formats||[]).join(' · ')}</span>`:''}</div></a>`}
 function viewTZ(v){
@@ -600,22 +604,23 @@ function viewTZ(v){
   if(sub){const x=TZ.items.find(i=>i.id===decodeURIComponent(sub));return x?tzForm(x,false):head+`<div class="empty">ТЗ не найдено. <a href="#tz">Ко всем ТЗ</a></div>`}
   const f=TZ.filter,L=TZ.items.filter(x=>!x.archived&&(f==='all'||x.type===f));
   const chips=[['all','Все'],...Object.entries(TZ_TYPES)].map(([k,t])=>`<button class="tz-chip${f===k?' on':''}" data-tzf="${k}">${t} <i>${k==='all'?TZ.items.filter(x=>!x.archived).length:TZ.items.filter(x=>!x.archived&&x.type===k).length}</i></button>`).join('');
-  const cols=TZ_ST.map(s=>{const C=L.filter(x=>(x.status||'new')===s[0]).sort((a,b)=>(a.deadline||'9')<(b.deadline||'9')?-1:1);
-    return `<section class="tz-col"><h3 style="--c:${s[2]}">${s[1]} <i>${C.length}</i></h3>${C.map(tzCard).join('')||'<div class="tz-none">—</div>'}</section>`}).join('');
+  const cols=TZ_ST.map(s=>{const C=L.filter(x=>stKey(x.status)===s[0]).sort((a,b)=>(a.deadline||'9')<(b.deadline||'9')?-1:1);
+    return `<section class="tz-col" data-tzcol="${s[0]}"><h3 style="--c:${s[2]}">${s[1]} <i>${C.length}</i></h3>${C.map(tzCard).join('')||'<div class="tz-none">—</div>'}</section>`}).join('');
   return head+`<div class="tz-head"><h1 class="h1">ТЗ</h1><div class="tz-acts"><button class="tz-btn ghost" data-tzr>Обновить</button><a class="tz-btn ghost" href="#tz/new?voice">🎤 Голосом</a><a class="tz-btn" href="#tz/new">+ Новое ТЗ</a></div></div>
-  <div class="tz-chips">${chips}</div>${TZ.err?`<div class="empty">${esc(TZ.err)}</div>`:''}<div class="tz-board">${cols}</div>`}
+  <div class="tz-chips">${chips}</div>${TZ.err?`<div class="empty">${esc(TZ.err)}</div>`:''}<div class="tz-hint">Зажмите карточку и перетащите в другую колонку, чтобы сменить статус</div><div class="tz-board">${cols}</div>`}
 function tzForm(x,isNew){
   const arts=[...new Set((D.promo||[]).map(a=>a.name))].sort((a,b)=>a.localeCompare(b,'ru'));
   const opt=(arr,val)=>arr.map(o=>{const [k,t]=Array.isArray(o)?o:[o,o];return `<option value="${esc(k)}"${k===val?' selected':''}>${esc(t)}</option>`}).join('');
   return `<div class="crumbs"><a href="#">Главная</a> / <a href="#tz">ТЗ</a> / <span>${isNew?'Новое':esc(x.title||'')}</span></div>
   <form class="tz-form" id="tzform" data-id="${esc(x.id||'')}">
+  <div class="tz-voice wide"><button type="button" class="tz-btn tz-mic big" data-mic="brief" data-all="1">🎤 Наговорить ТЗ целиком</button><small>Скажите всё подряд: что сделать, артист, город, кто делает, дедлайн, форматы, ссылки — поля заполнятся сами. Можно ключевыми словами: «название…», «артист…», «город…», «исполнитель…», «дедлайн…», «форматы…», «задача…», «ссылки…», «статус…».</small></div>
   <div class="tz-types">${Object.entries(TZ_TYPES).map(([k,t])=>`<label><input type="radio" name="type" value="${k}"${(x.type||'poster')===k?' checked':''}><span>${t}</span></label>`).join('')}</div>
   <label class="tz-f wide"><span class="tz-lab">Название <button type="button" class="tz-mic sm" data-mic="title">🎤</button></span><input name="title" required value="${esc(x.title||'')}" placeholder="Например: Афиша GUF, 10 января"></label>
   <label class="tz-f"><span>Проект / артист</span><input name="project" list="tzarts" value="${esc(x.project||'')}" placeholder="Выберите или впишите"><datalist id="tzarts">${arts.map(a=>`<option value="${esc(a)}">`).join('')}</datalist></label>
   <label class="tz-f"><span>Город</span><select name="city"><option value=""></option>${opt(TZ_CITY,x.city)}</select></label>
   <label class="tz-f"><span>Исполнитель</span><input name="assignee" value="${esc(x.assignee||'')}" placeholder="Дизайнер, моушн, монтаж…"></label>
   <label class="tz-f"><span>Дедлайн</span><input type="date" name="deadline" value="${esc(x.deadline||'')}"></label>
-  <label class="tz-f"><span>Статус</span><select name="status">${opt(TZ_ST.map(s=>[s[0],s[1]]),x.status||'new')}</select></label>
+  <label class="tz-f"><span>Статус</span><select name="status">${opt(TZ_ST.map(s=>[s[0],s[1]]),stKey(x.status))}</select></label>
   <div class="tz-f"><span>Форматы</span><div class="tz-fmts">${TZ_FMT.map(f=>`<label><input type="checkbox" name="formats" value="${f}"${(x.formats||[]).includes(f)?' checked':''}><span>${f}</span></label>`).join('')}</div></div>
   <label class="tz-f wide"><span class="tz-lab">Задача (ТЗ) <button type="button" class="tz-mic" data-mic="brief">🎤 Надиктовать</button></span><textarea name="brief" rows="8" placeholder="Что сделать, текст на афише, референсы, пожелания…">${esc(x.brief||'')}</textarea></label>
   <label class="tz-f wide"><span>Ссылки на исходники / референсы</span><textarea name="refs" rows="2" placeholder="Ссылки на Google Диск, фото, логотипы">${esc(x.refs||'')}</textarea></label>
@@ -628,20 +633,34 @@ function linkify(x){const urls=((x.refs||'')+' '+(x.result||'')+' '+(x.brief||''
 // ---------- ТЗ голосом ----------
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 const MONTHS_RU=['январ','феврал','март','апрел','ма','июн','июл','август','сентябр','октябр','ноябр','декабр'];
-function tzParse(t){const s=t.toLowerCase(),o={};
-  if(/видео|ролик|рилс|reels|монтаж|сторис-видео|тизер/.test(s))o.type='video';else if(/афиш|постер|баннер|макет|ресайз|флаер|обложк/.test(s))o.type='poster';
-  const c=[['Пхукет',/пхукет|phuket/],['Паттайя',/паттай|pattaya/],['Нячанг',/нячанг|начанг|вьетнам/]].find(x=>x[1].test(s));if(c)o.city=c[0];
-  const arts=[...new Set((D.promo||[]).map(a=>a.name))];const a=arts.find(n=>s.includes(n.toLowerCase()));if(a)o.project=a;
-  const f=[];if(/4\s*(на|x|х)\s*5|четыре на пять|пост в ленту/.test(s))f.push('4:5');if(/1\s*(на|x|х)\s*1|квадрат/.test(s))f.push('1:1');if(/9\s*(на|x|х)\s*16|девять на шестнадцать|сторис|вертикал/.test(s))f.push('9:16');if(/16\s*(на|x|х)\s*9|шестнадцать на девять|горизонт|ютуб|youtube/.test(s))f.push('16:9');if(f.length)o.formats=f;
-  const now=new Date();let d=null;
+const TZ_KEYS=[['title',/(?:^|[\s,.])(название|заголовок)(?![а-яёa-z])\s*[:—-]?\s*/i],['project',/(?:^|[\s,.])(проект|артист|исполнитель концерта|для артиста)(?![а-яёa-z])\s*[:—-]?\s*/i],['city',/(?:^|[\s,.])(город)(?![а-яёa-z])\s*[:—-]?\s*/i],['assignee',/(?:^|[\s,.])(исполнитель|делает|ответственн(?:ый|ая)|поручить|кто делает)(?![а-яёa-z])\s*[:—-]?\s*/i],['deadline',/(?:^|[\s,.])(дедлайн|срок(?: сдачи)?)(?![а-яёa-z])\s*[:—-]?\s*/i],['formats',/(?:^|[\s,.])(форматы?|размеры?|ресайзы?)(?![а-яёa-z])\s*[:—-]?\s*/i],['brief',/(?:^|[\s,.])(задача|описание|что сделать|текст на афише)(?![а-яёa-z])\s*[:—-]?\s*/i],['refs',/(?:^|[\s,.])(ссылк[аи]|исходники|референсы?)(?![а-яёa-z])\s*[:—-]?\s*/i],['status',/(?:^|[\s,.])(статус)(?![а-яёa-z])\s*[:—-]?\s*/i]];
+function tzSegments(t){const hits=[];TZ_KEYS.forEach(([k,re])=>{const g=new RegExp(re.source,'gi');let m;while((m=g.exec(t))){hits.push({k,i:m.index,j:m.index+m[0].length})}});
+  hits.sort((a,b)=>a.i-b.i);const out={};let lead=t;
+  hits.forEach((x,n)=>{if(n>0&&x.i<hits[n-1].j)return;const end=n+1<hits.length?hits[n+1].i:t.length;const v=t.slice(x.j,end).replace(/^[\s,.:—-]+|[\s,.]+$/g,'');if(v&&!out[x.k])out[x.k]=v});
+  if(hits.length)lead=t.slice(0,hits[0].i).trim();return{seg:out,lead,has:hits.length>0}}
+function tzDate(s){const now=new Date();let d=null;
   if(/послезавтра/.test(s)){d=new Date(now);d.setDate(d.getDate()+2)}else if(/завтра/.test(s)){d=new Date(now);d.setDate(d.getDate()+1)}else if(/сегодня/.test(s))d=new Date(now);
+  else{const w=['воскресень','понедельник','вторник','сред','четверг','пятниц','суббот'].findIndex(x=>new RegExp('(?:до|к|в)\\s+'+x).test(s));if(w>=0){d=new Date(now);let k=(w-d.getDay()+7)%7||7;d.setDate(d.getDate()+k)}}
   const MR='(\\d{1,2})\\s+(январ|феврал|март|апрел|ма[яй]|июн|июл|август|сентябр|октябр|ноябр|декабр)';
-  const m=s.match(new RegExp('(?:до|к|дедлайн|срок)\\s+'+MR))||s.match(new RegExp(MR));
-  if(m){const mi=MONTHS_RU.findIndex(x=>m[2].startsWith(x));d=new Date(now.getFullYear(),mi,+m[1]);if(d<new Date(now.getFullYear(),now.getMonth(),now.getDate()-1))d.setFullYear(d.getFullYear()+1)}
-  if(d)o.deadline=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-  const who=t.match(/(?:исполнитель|делает|ответственн(?:ый|ая)|поручить)\s*[:—-]?\s*([А-ЯЁ][а-яё]+)/i);if(who)o.assignee=who[1].charAt(0).toUpperCase()+who[1].slice(1);
-  const first=t.split(/[.!?\n]/)[0].trim();o.title=(first.length>4&&first.length<60?first:[o.type==='video'?'Видео':o.type==='poster'?'Афиша':'ТЗ',o.project,o.city].filter(Boolean).join(' · '));
-  o.title=o.title.charAt(0).toUpperCase()+o.title.slice(1);
+  const m=s.match(new RegExp('(?:до|к|дедлайн|срок)\\s+'+MR))||s.match(new RegExp(MR))||s.match(/(\d{1,2})[.\/](\d{1,2})/);
+  if(m){const mi=isNaN(+m[2])?MONTHS_RU.findIndex(x=>m[2].startsWith(x)):(+m[2]-1);d=new Date(now.getFullYear(),mi,+m[1]);if(d<new Date(now.getFullYear(),now.getMonth(),now.getDate()-1))d.setFullYear(d.getFullYear()+1)}
+  return d?d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'):''}
+function tzFormats(s){const f=[];if(/4\s*(на|x|х|:)\s*5|четыре на пять|пост в ленту|лент[ау]/.test(s))f.push('4:5');if(/1\s*(на|x|х|:)\s*1|квадрат/.test(s))f.push('1:1');if(/9\s*(на|x|х|:)\s*16|девять на шестнадцать|сторис|вертикал|рилс|reels/.test(s))f.push('9:16');if(/16\s*(на|x|х|:)\s*9|шестнадцать на девять|горизонт|ютуб|youtube/.test(s))f.push('16:9');if(/все (форматы|размеры|ресайзы)/.test(s))return TZ_FMT.slice();return f}
+const cap=v=>v?v.charAt(0).toUpperCase()+v.slice(1):v;
+function tzParse(t){const s=t.toLowerCase(),o={};const {seg,lead,has}=tzSegments(t);
+  if(/видео|ролик|рилс|reels|монтаж|моушн|анимац|тизер/.test(s))o.type='video';else if(/афиш|постер|баннер|макет|ресайз|флаер|обложк|билборд|роллап/.test(s))o.type='poster';
+  const cityS=(seg.city||s).toLowerCase();
+  if(/все[хм]? город|во всех/.test(cityS))o.city='Все города';else{const c=[['Пхукет',/пхукет|phuket/],['Паттайя',/паттай|pattaya/],['Нячанг',/нячанг|начанг|вьетнам/]].find(x=>x[1].test(cityS));if(c)o.city=c[0]}
+  const arts=[...new Set((D.promo||[]).map(a=>a.name))];const ps=(seg.project||s).toLowerCase();
+  const a=arts.find(n=>ps.includes(n.toLowerCase()))||arts.find(n=>{const l=n.toLowerCase();return l.length>=4&&new RegExp('(^|[^а-яёa-z])'+l.slice(0,-1).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).test(ps)});o.project=a||(seg.project?cap(seg.project.split(/[,.]/)[0].trim()):'');
+  const f=tzFormats((seg.formats||s).toLowerCase());if(f.length)o.formats=f;
+  o.deadline=tzDate((seg.deadline||s).toLowerCase());
+  if(seg.assignee)o.assignee=cap(seg.assignee.split(/[,.]|\s+(?:до|к|срок|дедлайн)\s/)[0].trim().split(/\s+/).slice(0,2).join(' '));
+  else{const who=t.match(/(?:делает|сделает|поручить|для)\s+([А-ЯЁ][а-яё]+)/);if(who&&!arts.some(n=>n.toLowerCase()===who[1].toLowerCase()))o.assignee=who[1]}
+  const st=(seg.status||'').toLowerCase()||s;if(/в работ/.test(st))o.status='work';else if(/готов|сделано|выполнен/.test(seg.status||''))o.status='done';
+  const links=t.match(/https?:\/\/\S+/g)||[];const rf=(seg.refs||'').replace(/https?:\/\/\S+/g,'').trim();if(rf||links.length)o.refs=[rf,...new Set(links)].filter(Boolean).join('\n');
+  o.brief=seg.brief||'';
+  if(seg.title)o.title=cap(seg.title.replace(/[,.\s]+$/,''));else if(o.project||o.city)o.title=[o.type==='video'?'Видео':o.type==='poster'?'Афиша':'ТЗ',o.project,o.city].filter(Boolean).join(' · ');else{const first=(lead||t).split(/[.!?\n]/)[0].trim().replace(/[,\s]+$/,'');o.title=cap(first.length>70?first.slice(0,67)+'…':first)}
   return o}
 let rec=null;
 function tzMic(btn,target,onDone){
@@ -654,17 +673,45 @@ function tzMic(btn,target,onDone){
   rec.onerror=e=>{toast(e.error==='not-allowed'?'Разрешите доступ к микрофону в настройках браузера':'Ошибка микрофона: '+e.error)};
   rec.onend=()=>{btn.classList.remove('rec');btn.innerHTML=btn.dataset.l;rec=null;target.value=target.value.trim();if(onDone&&fin.trim())onDone(fin.trim())};
   try{rec.start()}catch(e){toast('Не удалось включить микрофон');rec=null;btn.classList.remove('rec');btn.innerHTML=btn.dataset.l}}
-function tzFill(o){const f=$('#tzform');if(!f)return;
-  if(o.type){const r=f.querySelector(`input[name=type][value=${o.type}]`);if(r)r.checked=true}
-  const set=(n,v)=>{const el=f.elements[n];if(el&&v&&!el.value)el.value=v};
-  set('title',o.title);set('project',o.project);set('city',o.city);set('deadline',o.deadline);set('assignee',o.assignee);
-  (o.formats||[]).forEach(x=>{const c=f.querySelector(`input[name=formats][value="${x}"]`);if(c)c.checked=true});
-  toast('Заполнил поля из голоса — проверьте и нажмите «Создать ТЗ»')}
+function tzFill(o,raw){const f=$('#tzform');if(!f)return;let n=0;
+  if(o.type){const r=f.querySelector(`input[name=type][value=${o.type}]`);if(r){r.checked=true;n++}}
+  const set=(k,v)=>{const el=f.elements[k];if(el&&v){el.value=v;n++;el.classList.add('tz-filled');setTimeout(()=>el.classList.remove('tz-filled'),2500)}};
+  set('title',o.title);set('project',o.project);set('city',o.city);set('deadline',o.deadline);set('assignee',o.assignee);set('status',o.status);
+  if(o.refs){const r=f.elements.refs;r.value=(r.value?r.value.trim()+'\n':'')+o.refs;n++}
+  if(o.brief&&raw){const b=f.elements.brief;b.value=b.value.replace(raw,o.brief).trim()}
+  if(o.formats&&o.formats.length){f.querySelectorAll('input[name=formats]').forEach(c=>c.checked=o.formats.includes(c.value));n++}
+  toast(n?'Разложил по полям: проверьте и нажмите «'+(f.dataset.id?'Сохранить':'Создать ТЗ')+'»':'Записал в задачу')}
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-mic]');if(!b)return;e.preventDefault();
   const f=$('#tzform');const t=f.elements[b.dataset.mic];
-  tzMic(b,t,b.dataset.mic==='brief'?txt=>tzFill(tzParse(txt)):null)});
+  tzMic(b,t,b.dataset.mic==='brief'?txt=>tzFill(tzParse(txt),txt):null)});
 
+// ---------- ТЗ: перетаскивание карточек ----------
+const DG={on:false};
+document.addEventListener('pointerdown',e=>{const c=e.target.closest('.tz-card[data-tzid]');if(!c||e.button>0)return;
+  Object.assign(DG,{c,x:e.clientX,y:e.clientY,id:c.dataset.tzid,pid:e.pointerId,on:false,touch:e.pointerType!=='mouse'});
+  clearTimeout(DG.t);if(DG.touch)DG.t=setTimeout(()=>dgStart(e.clientX,e.clientY),320)});
+function dgStart(x,y){if(!DG.c)return;DG.on=true;const r=DG.c.getBoundingClientRect();
+  const g=DG.c.cloneNode(true);g.className='tz-card tz-ghost';g.style.width=r.width+'px';DG.dx=x-r.left;DG.dy=y-r.top;document.body.appendChild(g);DG.g=g;
+  DG.c.classList.add('tz-lift');document.body.classList.add('tz-dragging');if(navigator.vibrate)navigator.vibrate(15);dgMove(x,y)}
+function dgMove(x,y){DG.g.style.transform=`translate(${x-DG.dx}px,${y-DG.dy}px) rotate(2deg)`;
+  const el=document.elementFromPoint(x,y),col=el&&el.closest('[data-tzcol]');
+  document.querySelectorAll('[data-tzcol]').forEach(c=>c.classList.toggle('tz-over',c===col));DG.col=col;
+  if(y<70)window.scrollBy(0,-14);else if(y>innerHeight-70)window.scrollBy(0,14)}
+document.addEventListener('pointermove',e=>{if(!DG.c||e.pointerId!==DG.pid)return;
+  if(!DG.on){const d=Math.hypot(e.clientX-DG.x,e.clientY-DG.y);if(DG.touch){if(d>10){clearTimeout(DG.t);DG.c=null}return}if(d>6)dgStart(e.clientX,e.clientY);else return}
+  e.preventDefault();dgMove(e.clientX,e.clientY)});
+document.addEventListener('touchmove',e=>{if(DG.on)e.preventDefault()},{passive:false});
+document.addEventListener('contextmenu',e=>{if(e.target.closest('.tz-card'))e.preventDefault()});
+async function dgEnd(e){clearTimeout(DG.t);if(!DG.c)return;const was=DG.on;const col=DG.col,id=DG.id;
+  if(DG.g)DG.g.remove();DG.c.classList.remove('tz-lift');document.body.classList.remove('tz-dragging');document.querySelectorAll('.tz-over').forEach(c=>c.classList.remove('tz-over'));
+  Object.assign(DG,{c:null,on:false,g:null,col:null});if(!was)return;
+  DG.block=Date.now();const x=TZ.items.find(i=>i.id===id);if(!x||!col)return;const st=col.dataset.tzcol;if(stKey(x.status)===st)return;
+  const old=x.status;x.status=st;route();
+  try{const j=await tzCall('save',{item:Object.assign({},x,{status:st})});Object.assign(x,j.item);toast('Статус: '+stOf(st)[1])}
+  catch(err){x.status=old;route();toast('Не сохранилось: '+err.message)}}
+document.addEventListener('pointerup',dgEnd);document.addEventListener('pointercancel',dgEnd);
+document.addEventListener('click',e=>{if(DG.block&&Date.now()-DG.block<400&&e.target.closest('.tz-card')){e.preventDefault();e.stopPropagation()}},true);
 function tzMe(){try{return localStorage.getItem('tz-me')||''}catch(e){return''}}
 document.addEventListener('click',e=>{
   const c=e.target.closest('[data-tzf]');if(c){TZ.filter=c.dataset.tzf;route();return}
