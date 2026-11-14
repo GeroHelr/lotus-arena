@@ -433,7 +433,10 @@ function build(data){
   Object.values(F).forEach(f=>{let x=f,g=0;while(x&&!x.root&&g++<60)x=F[x.p];ROOT_OF[f.id]=x?x.id:null});
   PSD=(data.files||[]).filter(r=>F[r[1]]&&/\.(psd|psb|3psd)$/i.test(r[2])&&!/^[._~]/.test(r[2])).map(([id,p,t,k,c,s,th])=>({id,p,t,k:'psd',c,s,th,root:ROOT_OF[p],anc:path(p).map(x=>x.id),pp:path(p).map(x=>x.root?x.root.title:x.t)})).filter(f=>f.root===PROMO_ROOT).sort((a,b)=>a.pp.join('/').localeCompare(b.pp.join('/'),'ru',{numeric:true})||a.t.localeCompare(b.t,'ru',{numeric:true}));
   const PV=new Set((data.promo||[]).flatMap(a=>a.videos.map(v=>v[0])));
-  FILES=(data.files||[]).filter(r=>!(r[3]==='vid'&&ROOT_OF[r[1]]===PROMO_ROOT&&!PV.has(r[0]))).filter(r=>F[r[1]]&&r[3]!=='psd'&&!/\.(psd|psb|3psd)$/i.test(r[2])&&!(r[3]==='vid'&&(TECH_FILE.test(r[2])||TECH_FILE2.test(r[2])))).map(([id,p,t,k,c,s,th])=>({id,p,t,k,c,s,th})).sort((a,b)=>b.c.localeCompare(a.c));
+  const ONLY={'90e дискотека':/финал/i,'90е дискотека':/финал/i};
+  const onlyOk=p=>{let ok=null,g=0,x=p;const chain=[];while(x&&F[x]&&!F[x].root&&g++<60){chain.push(F[x].t);x=F[x].p}
+    for(let i=0;i<chain.length;i++){const re=ONLY[chain[i].trim().toLowerCase()];if(re&&F[x]&&x===PROMO_ROOT&&i===chain.length-1)return chain.slice(0,i).some(t=>re.test(t))}return true};
+  FILES=(data.files||[]).filter(r=>onlyOk(r[1])).filter(r=>!(r[3]==='vid'&&ROOT_OF[r[1]]===PROMO_ROOT&&!PV.has(r[0]))).filter(r=>F[r[1]]&&r[3]!=='psd'&&!/\.(psd|psb|3psd)$/i.test(r[2])&&!(r[3]==='vid'&&(TECH_FILE.test(r[2])||TECH_FILE2.test(r[2])))).map(([id,p,t,k,c,s,th])=>({id,p,t,k,c,s,th})).sort((a,b)=>b.c.localeCompare(a.c));
   FILES.forEach(f=>(BYP[f.p]=BYP[f.p]||[]).push(f));
   (data.seqs||[]).forEach(([id,n,ext,th])=>{SEQ[id]={n,ext,th}});
   // hide folders that have no files anywhere inside (empty leftovers on Drive)
