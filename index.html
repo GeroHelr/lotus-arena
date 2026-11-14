@@ -296,7 +296,7 @@ body.home .side{display:none}body.home .shell{grid-template-columns:minmax(0,1fr
 .tz-type{font-size:11.5px;font-weight:600;padding:3px 8px;border-radius:6px;background:var(--surface-2)}.t-video{color:#2f6fb5}.t-poster{color:#e84a8a}.t-other{color:#8a5cf6}
 .tz-st{font-size:11.5px;font-weight:600;color:var(--c)}
 .tz-meta{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:8px;font-size:12.5px;color:var(--muted)}
-.tz-dl.soon{color:#e0892f;font-weight:600}.tz-dl.late{color:#e5484d;font-weight:600}
+.tz-dl.soon{color:#e0892f;font-weight:600}.tz-dl.done{color:#2f8f7a;font-weight:600}.tz-dl.late{color:#e5484d;font-weight:600}
 .tz-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 18px;max-width:900px;margin-top:10px}
 @media(max-width:640px){.tz-form{grid-template-columns:minmax(0,1fr)}}
 .tz-form .wide{grid-column:1/-1}
@@ -588,12 +588,12 @@ async function tzLoad(force){
   if(TZ.loading||(TZ.items&&!force))return;TZ.loading=true;TZ.err='';
   try{TZ.items=(await tzCall('list')).items||[]}catch(e){TZ.err=e.message==='noapi'?'noapi':'Не удалось загрузить ТЗ: '+e.message}
   TZ.loading=false;if(location.hash.slice(1).startsWith('tz'))route()}
-const tzDl=d=>{if(!d)return'';const t=new Date(d+'T00:00:00'),now=new Date();now.setHours(0,0,0,0);const days=Math.round((t-now)/864e5);
+const tzDl=(d,st)=>{if(stKey(st)==='done')return`<span class="tz-dl done">✓ выполнено${d?' · срок '+fmtDate(d+'T12:00:00'):''}</span>`;if(!d)return'';const t=new Date(d+'T00:00:00'),now=new Date();now.setHours(0,0,0,0);const days=Math.round((t-now)/864e5);
   return `<span class="tz-dl${days<0?' late':days<=2?' soon':''}">до ${fmtDate(d+'T12:00:00')}${days<0?' · просрочено':days===0?' · сегодня':days===1?' · завтра':''}</span>`};
 function tzCard(x){const s=stOf(x.status);
   return `<a class="tz-card" data-tzid="${esc(x.id)}" href="#tz/${encodeURIComponent(x.id)}"><div class="tz-top"><span class="tz-type t-${x.type}">${TZ_TYPES[x.type]||'Другое'}</span><span class="tz-st" style="--c:${s[2]}">${s[1]}</span></div>
   <b>${esc(x.title||'Без названия')}</b><small>${esc([x.project,x.city].filter(Boolean).join(' · '))}</small>
-  <div class="tz-meta">${x.assignee?`<span>👤 ${esc(x.assignee)}</span>`:''}${tzDl(x.deadline)}${(x.formats||[]).length?`<span>${(x.formats||[]).join(' · ')}</span>`:''}</div></a>`}
+  <div class="tz-meta">${x.assignee?`<span>👤 ${esc(x.assignee)}</span>`:''}${tzDl(x.deadline,x.status)}${(x.formats||[]).length?`<span>${(x.formats||[]).join(' · ')}</span>`:''}</div></a>`}
 function viewTZ(v){
   const head=`<div class="crumbs"><a href="#">Главная</a> / <span>ТЗ</span></div>`;
   if(!TZ.api)return head+`<h1 class="h1">ТЗ</h1><div class="empty">${/github\.io$/.test(location.hostname)?'Раздел ТЗ скоро заработает — идёт подключение базы.':'Раздел ТЗ работает на сайте <a href="https://gerohelr.github.io/lotus-arena/#tz" target="_blank">gerohelr.github.io/lotus-arena</a>.'}</div>`;
