@@ -285,6 +285,7 @@ body.home .side{display:none}body.home .shell{grid-template-columns:minmax(0,1fr
 .tz-chip.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}.tz-chip i{font-style:normal;opacity:.6;margin-left:4px}
 .tz-board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:start}
 .tz-card{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;touch-action:pan-y}.tz-lift{opacity:.3}.tz-ghost{position:fixed;left:0;top:0;z-index:999;pointer-events:none;box-shadow:0 18px 40px rgba(0,0,0,.35);margin:0}.tz-dragging,.tz-dragging *{cursor:grabbing!important}.tz-col.tz-over{outline:2px dashed var(--accent);outline-offset:-2px;background:color-mix(in srgb,var(--accent) 10%,var(--surface-2))}
+.tz-stat{display:flex;flex-direction:column;gap:6px;padding:14px;border-radius:12px;background:var(--surface);border:1px solid var(--line);color:inherit;text-decoration:none}.tz-stat>b{font-size:40px;line-height:1;color:#2f8f7a}.tz-stat>span{font-size:13px;color:var(--muted);margin-bottom:4px}.tz-stat-row{display:flex;justify-content:space-between;font-size:13px;border-top:1px solid var(--line);padding-top:6px}.tz-stat-row em{font-style:normal;font-weight:700}.tz-stat small{font-size:12px;color:var(--muted);line-height:1.35;margin-top:2px}.tz-stat u{text-decoration:none;color:var(--accent);font-weight:600;font-size:13px;margin-top:4px}.tz-donegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;margin-top:12px}
 .tz-hint{font-size:12.5px;color:var(--muted);margin:-4px 0 10px}.tz-voice{display:flex;flex-direction:column;gap:6px;margin-bottom:6px}.tz-voice small{color:var(--muted);font-size:12.5px;line-height:1.4}.tz-mic.big{font-size:16px;padding:14px 18px;justify-content:center}.tz-filled{box-shadow:0 0 0 2px var(--accent)!important;transition:box-shadow .3s}
 
 .tz-col{background:var(--surface-2);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:10px;min-height:80px}
@@ -311,6 +312,7 @@ body.home .side{display:none}body.home .shell{grid-template-columns:minmax(0,1fr
 .tz-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:4px}.tz-msg{color:var(--muted);font-size:14px}.tz-msg.bad{color:#e5484d}
 .tz-links{max-width:900px;margin-top:22px;display:flex;flex-direction:column;gap:6px;font-size:14px}.tz-links a{color:#e84a8a;word-break:break-all}
 @media(max-width:560px){.tz-board{gap:6px}.tz-col{padding:6px;gap:6px;border-radius:10px}.tz-col h3{font-size:12px;gap:5px;margin:2px 2px}.tz-card{padding:8px;border-radius:9px}.tz-card b{font-size:12.5px;line-height:1.25}.tz-card small{font-size:11px}.tz-card .tz-meta{font-size:10.5px;gap:4px}.tz-card .tz-top{flex-wrap:wrap;gap:4px}.tz-card .tz-st{display:none}}
+@media(max-width:560px){.tz-stat{padding:8px;gap:4px}.tz-stat>b{font-size:28px}.tz-stat-row{font-size:11px;padding-top:4px}.tz-stat small{display:none}.tz-stat u{font-size:11.5px}.tz-stat>span{font-size:11px}}
 </style>
 </head><body>
 
@@ -609,10 +611,19 @@ function viewTZ(v){
   const sub=v.slice(3);
   if(sub==='new?voice')setTimeout(()=>{const b=document.querySelector('[data-mic=brief]');if(b)b.click()},300);
   if(sub==='new'||sub==='new?voice')return tzForm({type:TZ.filter==='all'?'poster':TZ.filter,status:'new',formats:[]},true);
+  if(sub==='done'){const f=TZ.filter,D0=TZ.items.filter(x=>!x.archived&&stKey(x.status)==='done'&&(f==='all'||x.type===f)).sort((a,b)=>(b.updated||'').localeCompare(a.updated||''));
+    const chips=[['all','Все'],...Object.entries(TZ_TYPES)].map(([k,t])=>`<button class="tz-chip${f===k?' on':''}" data-tzf="${k}">${t}</button>`).join('');
+    return `<div class="crumbs"><a href="#">Главная</a> / <a href="#tz">ТЗ</a> / <span>Готово</span></div><div class="tz-head"><h1 class="h1">Готово <span class="meta">${D0.length}</span></h1><div class="tz-acts"><a class="tz-btn ghost" href="#tz">← Ко всем ТЗ</a></div></div><div class="tz-chips">${chips}</div><div class="tz-donegrid">${D0.map(tzCard).join('')||'<div class="empty">Пока нет выполненных ТЗ.</div>'}</div>`}
   if(sub){const x=TZ.items.find(i=>i.id===decodeURIComponent(sub));return x?tzForm(x,false):head+`<div class="empty">ТЗ не найдено. <a href="#tz">Ко всем ТЗ</a></div>`}
   const f=TZ.filter,L=TZ.items.filter(x=>!x.archived&&(f==='all'||x.type===f));
   const chips=[['all','Все'],...Object.entries(TZ_TYPES)].map(([k,t])=>`<button class="tz-chip${f===k?' on':''}" data-tzf="${k}">${t} <i>${k==='all'?TZ.items.filter(x=>!x.archived).length:TZ.items.filter(x=>!x.archived&&x.type===k).length}</i></button>`).join('');
   const cols=TZ_ST.map(s=>{const C=L.filter(x=>stKey(x.status)===s[0]).sort((a,b)=>(a.deadline||'9')<(b.deadline||'9')?-1:1);
+    if(s[0]==='done'){const ago=n=>{const t=Date.now()-n*864e5;return C.filter(x=>x.updated&&new Date(x.updated).getTime()>=t).length};
+      const by=Object.entries(TZ_TYPES).map(([k,t])=>[t,C.filter(x=>x.type===k).length]).filter(x=>x[1]);
+      const last=C.slice().sort((a,b)=>(b.updated||'').localeCompare(a.updated||''))[0];
+      return `<section class="tz-col" data-tzcol="done"><h3 style="--c:${s[2]}">${s[1]} <i>${C.length}</i></h3><a class="tz-stat" href="#tz/done"><b>${C.length}</b><span>выполнено</span>
+        <div class="tz-stat-row"><span>за 7 дней</span><em>${ago(7)}</em></div><div class="tz-stat-row"><span>за 30 дней</span><em>${ago(30)}</em></div>${by.map(([t,n])=>`<div class="tz-stat-row"><span>${t}</span><em>${n}</em></div>`).join('')}
+        ${last?`<small>Последнее: ${esc(last.title||'')}</small>`:''}<u>Открыть готовые →</u></a></section>`}
     return `<section class="tz-col" data-tzcol="${s[0]}"><h3 style="--c:${s[2]}">${s[1]} <i>${C.length}</i></h3>${C.map(tzCard).join('')||'<div class="tz-none">—</div>'}</section>`}).join('');
   return head+`<div class="tz-head"><h1 class="h1">ТЗ</h1><div class="tz-acts"><button class="tz-btn ghost" data-tzr>Обновить</button><a class="tz-btn ghost" href="#tz/new?voice">🎤 Голосом</a><a class="tz-btn" href="#tz/new">+ Новое ТЗ</a></div></div>
   <div class="tz-chips">${chips}</div>${TZ.err?`<div class="empty">${esc(TZ.err)}</div>`:''}<div class="tz-hint">Зажмите карточку и перетащите в другую колонку, чтобы сменить статус</div><div class="tz-board">${cols}</div>`}
