@@ -442,6 +442,11 @@ function build(data){
   Object.keys(F).forEach(id=>{if(!F[id].root&&has[id]===0)delete F[id]});
   Object.keys(KIDS).forEach(p=>{KIDS[p]=(KIDS[p]||[]).filter(k=>F[k])});
   {const AL={'5sta family':'ВСЕ НАШИ ФЕСТ','5 sta family':'ВСЕ НАШИ ФЕСТ','5ivesta family':'ВСЕ НАШИ ФЕСТ'},M={};(data.promo||[]).forEach(a=>{const n=AL[a.name.trim().toLowerCase()]||a.name;if(M[n]){const ids=new Set(M[n].videos.map(v=>v[0]));a.videos.forEach(v=>{if(!ids.has(v[0]))M[n].videos.push(v)});const pi=new Set(M[n].posters.map(v=>v[0]));a.posters.forEach(v=>{if(!pi.has(v[0]))M[n].posters.push(v)});if(!M[n].folder)M[n].folder=a.folder}else{a.name=n;M[n]=a}});data.promo=Object.values(M)}
+  {const HIDE={'инстасамка':/бали|bali/i};const byF={};(data.promo||[]).forEach(a=>{if(a.folder)byF[a.folder]=a});
+   const anc=p=>{const r=[];let g=0;while(p&&F[p]&&g++<60){r.push(p);p=F[p].p}return r};
+   (data.promo||[]).forEach(a=>{const keep=[];a.videos.forEach(v=>{const own=anc(v[6]).map(id=>byF[id]).find(Boolean);if(own&&own!==a){if(!own.videos.some(x=>x[0]===v[0]))own.videos.push(v)}else keep.push(v)});a.videos=keep;
+     const hz=HIDE[a.name.trim().toLowerCase()];if(hz){a.videos=a.videos.filter(v=>!hz.test(v[4]+' '+v[1]+' '+(v[7]||'')));a.posters=a.posters.filter(p=>!hz.test(p[3]+' '+p[1]))}});
+   data.promo=data.promo.filter(a=>a.videos.length||a.posters.length)}
   data.promo=(data.promo||[]).filter(a=>!hidden(a.name));(data.promo||[]).forEach((a,i)=>{a.name=ru(a.name);a.i=i;a.key=a.folder||('a'+i);ARTIST[a.key]=a});
   try{JSON.parse(store.get('lotus-open')||'[]').forEach(i=>open.add(i))}catch(e){}
 }
