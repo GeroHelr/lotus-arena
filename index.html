@@ -349,7 +349,7 @@ body.home .side{display:none}body.home .shell{grid-template-columns:minmax(0,1fr
 #gate form.bad input{border-color:#ff6b6b;animation:sh .3s}@keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 </style>
 <div id="gate" hidden><form action="javascript:void(0)" onsubmit="return false"><img src="logo.png" alt=""><h2>LOTUS ARENA</h2><p>Материалы · вход по паролю</p><!--v3-->
-<input type="password" placeholder="Пароль" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" autofocus><button type="submit">Войти</button><div class="er"></div><div class="vv">версия 4</div></form></div>
+<div style="position:relative"><input type="password" placeholder="Пароль / Mật khẩu" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" autofocus style="padding-right:48px"><span id="eye" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:20px;opacity:.7" onclick="const i=this.previousElementSibling;i.type=i.type==='password'?'text':'password'">👁</span></div><button type="submit">Войти / Đăng nhập</button><div class="er"></div><div class="vv">версия 5</div></form></div>
 <script>
 window.GATE=new Promise(ok=>{const H='5f87b203c4b6d096fbf35162f40e4b470a5c449700ec4ec7c50a3dc2bfb6649a',K='lotus-pass';
 const shaJS=t=>{const u=unescape(encodeURIComponent(t)),K=[],H0=[];let n=2,c=0;const f=x=>(x-Math.floor(x))*4294967296|0;
@@ -364,13 +364,17 @@ const norm0=v=>v.replace(/[‐-―−]/g,'-').replace(/\s+/g,'');
 const RU='йцукенгшщзхъфывапролджэячсмитьбю',EN="qwertyuiop[]asdfghjkl;'zxcvbnm,.";
 const lat=v=>[...v].map(ch=>{const lo=ch.toLowerCase(),i=RU.indexOf(lo);if(i<0)return ch;const e=EN[i];return ch!==lo?e.toUpperCase():e}).join('');
 const norm=v=>lat(norm0(v));
+const VN=(v,m)=>[...v.normalize('NFD')].map(c=>m[c]!==undefined?m[c]:c).join('').normalize('NFC').replace(/đ/g,m.dd||'d').replace(/Đ/g,(m.dd||'d').toUpperCase());
+const VNI={'́':'1','̀':'2','̉':'3','̃':'4','̣':'5','̂':'6','̛':'7','̆':'8',dd:'d9'},TLX={'́':'s','̀':'f','̉':'r','̃':'x','̣':'j','̂':'','̛':'w','̆':'w',dd:'dd'},STR={'́':'','̀':'','̉':'','̃':'','̣':'','̂':'','̛':'','̆':''};
+const flip=t=>t?(t[0]===t[0].toUpperCase()?t[0].toLowerCase():t[0].toUpperCase())+t.slice(1):t;
+const cands=v=>{const b=[v,VN(v,VNI),VN(v,TLX),VN(v,STR)].map(norm);return [...new Set(b.concat(b.map(flip)))]};
 let saved='';try{saved=localStorage.getItem(K)||''}catch(e){}
 if(saved!==H){const m=document.cookie.match(/(?:^|; )lotus_pass=([0-9a-f]{64})/);if(m)saved=m[1]}
 const keep=()=>{try{localStorage.setItem(K,H)}catch(e){}try{document.cookie='lotus_pass='+H+'; max-age=31536000; path=/; SameSite=Lax; Secure'}catch(e){}};
 if(saved===H){keep();const g0=document.getElementById('gate');if(g0)g0.remove();ok();return}
 const g=document.getElementById('gate');g.hidden=false;
-const go=async e=>{if(e)e.preventDefault();const er=g.querySelector('.er');er.textContent='Проверяю…';let v='';try{v=await sha(norm(g.querySelector('input').value))}catch(x){er.textContent='Ошибка браузера: '+x;return}
- if(v===H){keep();g.remove();ok()}else{const fm=g.querySelector('form');fm.classList.remove('bad');void fm.offsetWidth;fm.classList.add('bad');er.textContent='Неверный пароль. Проверьте большие и маленькие буквы.'}};
+const go=async e=>{if(e)e.preventDefault();const er=g.querySelector('.er');er.textContent='Проверяю…';let hit=false;try{for(const c of cands(g.querySelector('input').value)){if(await sha(c)===H){hit=true;break}}}catch(x){er.textContent='Ошибка браузера: '+x;return}
+ if(hit){keep();g.remove();ok()}else{const fm=g.querySelector('form');fm.classList.remove('bad');void fm.offsetWidth;fm.classList.add('bad');er.textContent='Неверный пароль. Проверьте большие и маленькие буквы. · Sai mật khẩu, hãy tắt bộ gõ tiếng Việt.'}};
 const f=g.querySelector('form');f.addEventListener('submit',go);g.querySelector('button').addEventListener('click',go);});
 </script>
 <script>window.TZ_API='https://script.google.com/macros/s/AKfycbx794GUS1tYEs5Vt2TgtOJeeQMCZIibGFFHD5egSSwqN8Vl-Bwa3ehlh7vwNZINK7Wp/exec';</script>
