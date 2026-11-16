@@ -413,7 +413,7 @@ const RU=[[/\bnha ?trang\b|\bnhatrang\b/gi,'Нячанг'],[/\bphuket\b/gi,'Пх
 function ru(t){let s=t;RU.forEach(([re,r])=>{s=s.replace(re,r)});s=s.replace(/\s{2,}/g,' ').trim();return s.charAt(0).toUpperCase()+s.slice(1)}
 const hidden=t=>/^\s*([_.~]|(claude|clode|клод)(?![a-zа-я]))/i.test(t);
 // technical motion-graphics folders and layer files (renders for editing, not for sharing)
-const TECH_DIR=/^(layers2?|davinci layers|mg_sloi|mg_davinci|motion|kit|placeholders(_png)?|\d*\s*моушен слои|lotus promo titles( v\d+)?|.*_davinci|(\d+\s*)?исходники|src|sources?)$/i;
+const TECH_DIR=/^(layers2?|davinci layers|mg_sloi|mg_davinci|motion|kit|placeholders(_png)?|\d*\s*моушен слои|lotus promo titles( v\d+)?|.*_davinci|(\d+\s*)?исходники|src|sources?|.*монтаж|части|seg)$/i;
 const TECH_FILE=/^T\d+[a-z]?_|alpha|rgba|prores|4444|(^|_)(HUD|FX|GFX|FRAME|SLOT|MG|DIFFERENCE|LOGO)(_|\.|$)|_hold[._]|TITLES_SFX|FOOTAGE_MUSIC|^prev_|^clean_v?\d|^Timeline \d|placeholder/i,TECH_FILE2=/_VIDEO\./;
 const isRecent=(f,days)=>Date.now()-new Date(f.c)<days*864e5;
 const isPrintRoot=id=>{const r=ROOTS.find(x=>x.id===id);return !!r&&/печать/i.test(r.title)};const inPrint=f=>isPrintRoot(ROOT_OF[f.p]);
