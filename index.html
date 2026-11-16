@@ -313,6 +313,8 @@ body.home .side{display:none}body.home .shell{grid-template-columns:minmax(0,1fr
 .tz-links{max-width:900px;margin-top:22px;display:flex;flex-direction:column;gap:6px;font-size:14px}.tz-links a{color:#e84a8a;word-break:break-all}
 @media(max-width:560px){.tz-board{gap:6px}.tz-col{padding:6px;gap:6px;border-radius:10px}.tz-col h3{font-size:12px;gap:5px;margin:2px 2px}.tz-card{padding:8px;border-radius:9px}.tz-card b{font-size:12.5px;line-height:1.25}.tz-card small{font-size:11px}.tz-card .tz-meta{font-size:10.5px;gap:4px}.tz-card .tz-top{flex-wrap:wrap;gap:4px}.tz-card .tz-st{display:none}}
 @media(max-width:560px){.tz-stat{padding:8px;gap:4px}.tz-stat>b{font-size:28px}.tz-stat-row{font-size:11px;padding-top:4px}.tz-stat small{display:none}.tz-stat u{font-size:11.5px}.tz-stat>span{font-size:11px}}
+.tz-card{-webkit-user-drag:none;user-select:none;-webkit-user-select:none}
+body.tz-dragging{cursor:grabbing}
 </style>
 </head><body>
 
@@ -605,7 +607,7 @@ async function tzLoad(force){
 const tzDl=(d,st)=>{if(stKey(st)==='done')return`<span class="tz-dl done">✓ выполнено${d?' · срок '+fmtDate(d+'T12:00:00'):''}</span>`;if(!d)return'';const t=new Date(d+'T00:00:00'),now=new Date();now.setHours(0,0,0,0);const days=Math.round((t-now)/864e5);
   return `<span class="tz-dl${days<0?' late':days<=2?' soon':''}">до ${fmtDate(d+'T12:00:00')}${days<0?' · просрочено':days===0?' · сегодня':days===1?' · завтра':''}</span>`};
 function tzCard(x){const s=stOf(x.status);
-  return `<a class="tz-card" data-tzid="${esc(x.id)}" href="#tz/${encodeURIComponent(x.id)}"><div class="tz-top"><span class="tz-type t-${x.type}">${TZ_TYPES[x.type]||'Другое'}</span><span class="tz-st" style="--c:${s[2]}">${s[1]}</span></div>
+  return `<a class="tz-card" draggable="false" data-tzid="${esc(x.id)}" href="#tz/${encodeURIComponent(x.id)}"><div class="tz-top"><span class="tz-type t-${x.type}">${TZ_TYPES[x.type]||'Другое'}</span><span class="tz-st" style="--c:${s[2]}">${s[1]}</span></div>
   <b>${esc(x.title||'Без названия')}</b><small>${esc([x.project,x.city].filter(Boolean).join(' · '))}</small>
   <div class="tz-meta">${x.assignee?`<span>👤 ${esc(x.assignee)}</span>`:''}${tzDl(x.deadline,x.status)}${(x.formats||[]).length?`<span>${(x.formats||[]).join(' · ')}</span>`:''}</div></a>`}
 function viewTZ(v){
@@ -733,6 +735,7 @@ async function dgEnd(e){clearTimeout(DG.t);if(!DG.c)return;const was=DG.on;const
   const old=x.status;x.status=st;route();
   try{const j=await tzCall('save',{item:Object.assign({},x,{status:st})});Object.assign(x,j.item);toast('Статус: '+stOf(st)[1])}
   catch(err){x.status=old;route();toast('Не сохранилось: '+err.message)}}
+document.addEventListener('dragstart',e=>{if(e.target.closest&&e.target.closest('.tz-card'))e.preventDefault()});
 document.addEventListener('pointerup',dgEnd);document.addEventListener('pointercancel',dgEnd);
 document.addEventListener('click',e=>{if(DG.block&&Date.now()-DG.block<400&&e.target.closest('.tz-card')){e.preventDefault();e.stopPropagation()}},true);
 function tzMe(){try{return localStorage.getItem('tz-me')||''}catch(e){return''}}
@@ -792,6 +795,7 @@ document.querySelectorAll('.vt button').forEach(x=>x.addEventListener('click',()
 let tt;function toast(s){const t=$('#toast');t.textContent=s;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2600)}
 window.GATE.then(()=>fetch('data.json',{cache:'no-store'})).then(r=>{if(!r.ok)throw 0;return r.json()}).then(d=>{build(d);route()}).catch(()=>{$('#main').innerHTML='<div class="empty">Не удалось загрузить список. Обновите страницу через минуту.</div>'});
 })();
+const BUILD='20261116185812';(function(){async function chk(){try{const r=await fetch(location.href.split('#')[0].split('?')[0]+'?v='+Date.now(),{cache:'no-store'});if(!r.ok)return;const t=await r.text();const m=t.match(/const BUILD='(\d+)'/);if(m&&m[1]!==BUILD&&!document.body.classList.contains('tz-dragging')&&!document.querySelector('form.tz-form'))location.reload()}catch(e){}}setTimeout(chk,3000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)chk()});setInterval(chk,10*60e3)})();
 </script>
 
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
