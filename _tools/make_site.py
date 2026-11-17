@@ -1,6 +1,6 @@
 """Build the GitHub Pages version (site/index.html) from index.html: full HTML skeleton + password gate."""
 import hashlib, sys, os
-# usage: python3 make_site.py SRC_INDEX OUT_INDEX [--hash HEX | --keep-hash-from OLD_INDEX]
+# usage: python3 make_site.py SRC_INDEX OUT_INDEX [--hash HEX | --keep-hash-from OLD_INDEX] [--closed = require password; default open, no password]
 import re
 src, out_path = sys.argv[1], sys.argv[2]
 if sys.argv[3] == '--hash': H = sys.argv[4]
@@ -31,7 +31,7 @@ gate = """<style>
 <div id="gate" hidden><form action="javascript:void(0)" onsubmit="return false"><img src="logo.png" alt=""><h2>LOTUS ARENA</h2><p>Материалы · вход по паролю</p><!--v3-->
 <div style="position:relative"><input type="password" placeholder="Пароль / Mật khẩu" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" autofocus style="padding-right:48px"><span id="eye" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:20px;opacity:.7" onclick="const i=this.previousElementSibling;i.type=i.type==='password'?'text':'password'">👁</span></div><button type="submit">Войти / Đăng nhập</button><div class="er"></div><div class="vv">версия 5</div></form></div>
 <script>
-window.GATE=new Promise(ok=>{const H='@@H@@',K='lotus-pass';
+window.GATE=new Promise(ok=>{const H='@@H@@',K='lotus-pass',OPEN=@@OPEN@@;
 const shaJS=t=>{const u=unescape(encodeURIComponent(t)),K=[],H0=[];let n=2,c=0;const f=x=>(x-Math.floor(x))*4294967296|0;
  while(c<64){let p=1;for(let d=2;d*d<=n;d++)if(n%d===0){p=0;break}if(p){if(c<8)H0[c]=f(Math.pow(n,1/2));K[c++]=f(Math.pow(n,1/3))}n++}
  const b=[];for(let i=0;i<u.length;i++)b.push(u.charCodeAt(i));const l=b.length*8;b.push(128);while(b.length%64!==56)b.push(0);
@@ -51,13 +51,13 @@ const cands=v=>{const b=[v,VN(v,VNI),VN(v,TLX),VN(v,STR)].map(norm);return [...n
 let saved='';try{saved=localStorage.getItem(K)||''}catch(e){}
 if(saved!==H){const m=document.cookie.match(/(?:^|; )lotus_pass=([0-9a-f]{64})/);if(m)saved=m[1]}
 const keep=()=>{try{localStorage.setItem(K,H)}catch(e){}try{document.cookie='lotus_pass='+H+'; max-age=31536000; path=/; SameSite=Lax; Secure'}catch(e){}};
-if(saved===H){keep();const g0=document.getElementById('gate');if(g0)g0.remove();ok();return}
+if(OPEN||saved===H){keep();const g0=document.getElementById('gate');if(g0)g0.remove();ok();return}
 const g=document.getElementById('gate');g.hidden=false;
 const go=async e=>{if(e)e.preventDefault();const er=g.querySelector('.er');er.textContent='Проверяю…';let hit=false;try{for(const c of cands(g.querySelector('input').value)){if(await sha(c)===H){hit=true;break}}}catch(x){er.textContent='Ошибка браузера: '+x;return}
  if(hit){keep();g.remove();ok()}else{const fm=g.querySelector('form');fm.classList.remove('bad');void fm.offsetWidth;fm.classList.add('bad');er.textContent='Неверный пароль. Проверьте большие и маленькие буквы. · Sai mật khẩu, hãy tắt bộ gõ tiếng Việt.'}};
 const f=g.querySelector('form');f.addEventListener('submit',go);g.querySelector('button').addEventListener('click',go);});
 </script>
-""".replace('@@H@@', H)
+""".replace('@@H@@', H).replace('@@OPEN@@', 'false' if '--closed' in sys.argv else 'true')
 out = '<!doctype html>\n<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">\n<meta name="robots" content="noindex,nofollow">\n<meta name="theme-color" content="#110e1c">\n<meta name="description" content="Все материалы Lotus Arena: промо артистов, афиши, видео. Пхукет · Паттайя · Нячанг">\n<meta property="og:type" content="website">\n<meta property="og:site_name" content="Lotus Arena">\n<meta property="og:title" content="Lotus Arena — материалы">\n<meta property="og:description" content="Промо артистов, афиши, видео. Пхукет · Паттайя · Нячанг">\n<meta property="og:url" content="https://gerohelr.github.io/lotus-arena/">\n<meta property="og:image" content="https://gerohelr.github.io/lotus-arena/og-image.png">\n<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">\n<meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:image" content="https://gerohelr.github.io/lotus-arena/og-image.png">\n<link rel="icon" href="favicon.ico" sizes="any">\n<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">\n<link rel="apple-touch-icon" href="apple-touch-icon.png">\n<link rel="manifest" href="manifest.webmanifest">\n<meta name="apple-mobile-web-app-capable" content="yes">\n<meta name="mobile-web-app-capable" content="yes">\n<meta name="apple-mobile-web-app-title" content="Lotus Arena">\n<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">\n' + s.replace('</style>', '</style>\n</head><body>', 1)
 i = out.index('<script>')  # gate must run before the page script
 out = out[:i] + gate + ("<script>window.TZ_API='%s';</script>\n" % API if API else '') + out[i:] + ((open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'push_snippet.html')).read().replace('@@APP@@', OS)) if OS else '') + '\n</body></html>'
