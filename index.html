@@ -415,7 +415,7 @@ const RU=[[/\bnha ?trang\b|\bnhatrang\b/gi,'Нячанг'],[/\bphuket\b/gi,'Пх
 function ru(t){let s=t;RU.forEach(([re,r])=>{s=s.replace(re,r)});s=s.replace(/\s{2,}/g,' ').trim();return s.charAt(0).toUpperCase()+s.slice(1)}
 const hidden=t=>/^\s*([_.~]|(claude|clode|клод)(?![a-zа-я]))/i.test(t);
 // technical motion-graphics folders and layer files (renders for editing, not for sharing)
-const NOSITE=/tiamat|тиамат/i;const TECH_DIR=/^(служебн.*|.*слои.*|layers\d*|рабочие файлы|layers2?|davinci layers|mg_sloi|mg_davinci|motion|kit|placeholders(_png)?|\d*\s*моушен слои|lotus promo titles( v\d+)?|.*_davinci|(\d+\s*)?исходники|src|sources?|.*монтаж|части|seg)$/i;
+const NOSITE=/tiamat|тиамат/i;const NOID=new Set(["1qN3-oEVsHQnb3x-_rY4K_wD9lVb2UZrb", "13bx2Li-oPQuE-mIqjaKTILRgSu0AEHxv", "120f0FrHl0fxQNgfWT81pFjL5m1C_8WMT", "1Ev4NwQcp6Bf4juFIoAb7ByIbS2WD3KBZ", "17iVlVSTuTyvC2Pl_ynQfxgvNGZ_G5eiZ"]);const TECH_DIR=/^(служебн.*|.*слои.*|layers\d*|рабочие файлы|layers2?|davinci layers|mg_sloi|mg_davinci|motion|kit|placeholders(_png)?|\d*\s*моушен слои|lotus promo titles( v\d+)?|.*_davinci|(\d+\s*)?исходники|src|sources?|.*монтаж|части|seg)$/i;
 const TECH_FILE=/^T\d+[a-z]?_|alpha|rgba|prores|4444|(^|_)(HUD|FX|GFX|FRAME|SLOT|MG|DIFFERENCE|LOGO)(_|\.|$)|_hold[._]|TITLES_SFX|FOOTAGE_MUSIC|^prev_|^clean_v?\d|^Timeline \d|placeholder/i,TECH_FILE2=/_VIDEO\./;
 const isRecent=(f,days)=>Date.now()-new Date(f.c)<days*864e5;
 const isPrintRoot=id=>{const r=ROOTS.find(x=>x.id===id);return !!r&&/печать/i.test(r.title)};const inPrint=f=>isPrintRoot(ROOT_OF[f.p]);
@@ -434,17 +434,17 @@ function build(data){
   D=data;D.tb=D.tb||{};ROOTS=data.roots;
   ROOTS.forEach(r=>{F[r.id]={id:r.id,p:null,t:r.folder,m:'',root:r};KIDS[r.id]=[];if(r.key==='promo')PROMO_ROOT=r.id});
   data.folders.forEach(([id,p,t,m])=>{if(!F[id])F[id]={id,p,t:ru(t),o:t,m}});
-  const ok=id=>{let x=F[id],g=0;while(x&&g++<60){if(x.root)return true;if(hidden(x.o||x.t)||TECH_DIR.test((x.o||x.t).trim())||NOSITE.test(x.o||x.t))return false;x=F[x.p]}return false};
+  const ok=id=>{let x=F[id],g=0;while(x&&g++<60){if(x.root)return true;if(hidden(x.o||x.t)||TECH_DIR.test((x.o||x.t).trim())||NOSITE.test(x.o||x.t)||NOID.has(x.id))return false;x=F[x.p]}return false};
   Object.keys(F).forEach(id=>{if(!ok(id))delete F[id]});
   Object.values(F).forEach(f=>{if(f.p&&F[f.p])(KIDS[f.p]=KIDS[f.p]||[]).push(f.id)});
   Object.values(KIDS).forEach(a=>a.sort((x,y)=>F[x].t.localeCompare(F[y].t,'ru',{numeric:true})));
   Object.values(F).forEach(f=>{let x=f,g=0;while(x&&!x.root&&g++<60)x=F[x.p];ROOT_OF[f.id]=x?x.id:null});
-  PSD=(data.files||[]).filter(r=>F[r[1]]&&!NOSITE.test(r[2])&&/\.(psd|psb|3psd)$/i.test(r[2])&&!/^[._~]/.test(r[2])).map(([id,p,t,k,c,s,th])=>({id,p,t,k:'psd',c,s,th,root:ROOT_OF[p],anc:path(p).map(x=>x.id),pp:path(p).map(x=>x.root?x.root.title:x.t)})).filter(f=>f.root===PROMO_ROOT).sort((a,b)=>a.pp.join('/').localeCompare(b.pp.join('/'),'ru',{numeric:true})||a.t.localeCompare(b.t,'ru',{numeric:true}));
+  PSD=(data.files||[]).filter(r=>F[r[1]]&&!NOSITE.test(r[2])&&!NOID.has(r[0])&&/\.(psd|psb|3psd)$/i.test(r[2])&&!/^[._~]/.test(r[2])).map(([id,p,t,k,c,s,th])=>({id,p,t,k:'psd',c,s,th,root:ROOT_OF[p],anc:path(p).map(x=>x.id),pp:path(p).map(x=>x.root?x.root.title:x.t)})).filter(f=>f.root===PROMO_ROOT).sort((a,b)=>a.pp.join('/').localeCompare(b.pp.join('/'),'ru',{numeric:true})||a.t.localeCompare(b.t,'ru',{numeric:true}));
   const PV=new Set((data.promo||[]).flatMap(a=>a.videos.map(v=>v[0])));
   const ONLY={'90e дискотека':/финал/i,'90е дискотека':/финал/i};
   const onlyOk=p=>{let ok=null,g=0,x=p;const chain=[];while(x&&F[x]&&!F[x].root&&g++<60){chain.push(F[x].t);x=F[x].p}
     for(let i=0;i<chain.length;i++){const re=ONLY[chain[i].trim().toLowerCase()];if(re&&F[x]&&x===PROMO_ROOT&&i===chain.length-1)return chain.slice(0,i).some(t=>re.test(t))}return true};
-  FILES=(data.files||[]).filter(r=>onlyOk(r[1])&&!NOSITE.test(r[2])).filter(r=>!(r[3]==='vid'&&ROOT_OF[r[1]]===PROMO_ROOT&&!PV.has(r[0]))).filter(r=>F[r[1]]&&r[3]!=='psd'&&!/\.(psd|psb|3psd)$/i.test(r[2])&&!(r[3]==='vid'&&(TECH_FILE.test(r[2])||TECH_FILE2.test(r[2])))).map(([id,p,t,k,c,s,th])=>({id,p,t,k,c,s,th})).sort((a,b)=>b.c.localeCompare(a.c));
+  FILES=(data.files||[]).filter(r=>onlyOk(r[1])&&!NOSITE.test(r[2])&&!NOID.has(r[0])).filter(r=>!(r[3]==='vid'&&ROOT_OF[r[1]]===PROMO_ROOT&&!PV.has(r[0]))).filter(r=>F[r[1]]&&r[3]!=='psd'&&!/\.(psd|psb|3psd)$/i.test(r[2])&&!(r[3]==='vid'&&(TECH_FILE.test(r[2])||TECH_FILE2.test(r[2])))).map(([id,p,t,k,c,s,th])=>({id,p,t,k,c,s,th})).sort((a,b)=>b.c.localeCompare(a.c));
   FILES.forEach(f=>(BYP[f.p]=BYP[f.p]||[]).push(f));
   (data.seqs||[]).forEach(([id,n,ext,th])=>{SEQ[id]={n,ext,th}});
   // hide folders that have no files anywhere inside (empty leftovers on Drive)
@@ -795,7 +795,7 @@ document.querySelectorAll('.vt button').forEach(x=>x.addEventListener('click',()
 let tt;function toast(s){const t=$('#toast');t.textContent=s;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2600)}
 window.GATE.then(()=>fetch('data.json',{cache:'no-store'})).then(r=>{if(!r.ok)throw 0;return r.json()}).then(d=>{build(d);route()}).catch(()=>{$('#main').innerHTML='<div class="empty">Не удалось загрузить список. Обновите страницу через минуту.</div>'});
 })();
-const BUILD='20261122194243';(function(){async function chk(){try{const r=await fetch(location.href.split('#')[0].split('?')[0]+'?v='+Date.now(),{cache:'no-store'});if(!r.ok)return;const t=await r.text();const m=t.match(/const BUILD='(\d+)'/);if(m&&m[1]!==BUILD&&!document.body.classList.contains('tz-dragging')&&!document.querySelector('form.tz-form'))location.reload()}catch(e){}}setTimeout(chk,3000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)chk()});setInterval(chk,10*60e3)})();
+const BUILD='20261122194731';(function(){async function chk(){try{const r=await fetch(location.href.split('#')[0].split('?')[0]+'?v='+Date.now(),{cache:'no-store'});if(!r.ok)return;const t=await r.text();const m=t.match(/const BUILD='(\d+)'/);if(m&&m[1]!==BUILD&&!document.body.classList.contains('tz-dragging')&&!document.querySelector('form.tz-form'))location.reload()}catch(e){}}setTimeout(chk,3000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)chk()});setInterval(chk,10*60e3)})();
 </script>
 
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
