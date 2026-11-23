@@ -301,6 +301,7 @@ body.home .side{display:none}body.home .shell{grid-template-columns:minmax(0,1fr
 .tz-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 18px;max-width:900px;margin-top:10px}
 @media(max-width:640px){.tz-form{grid-template-columns:minmax(0,1fr)}}
 .tz-form .wide{grid-column:1/-1}
+.tz-donebtn{background:#2f9e44!important;color:#fff!important;font-size:18px;font-weight:700;padding:16px;border-radius:999px;width:100%;border:0}
 .tz-f{display:flex;flex-direction:column;gap:6px}.tz-f>span{font-size:13px;color:var(--muted);font-weight:500}
 .tz-f input,.tz-f select,.tz-f textarea{width:100%;box-sizing:border-box;padding:11px 13px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:15px var(--f-body)}
 .tz-f textarea{resize:vertical;line-height:1.45}
@@ -652,7 +653,8 @@ function tzForm(x,isNew){
   <label class="tz-f wide"><span>Готовый результат</span><textarea name="result" rows="2" placeholder="Ссылка на готовый файл">${esc(x.result||'')}</textarea></label>
   <label class="tz-f"><span>Кто поставил</span><input name="author" value="${esc(x.author||tzMe())}" placeholder="Ваше имя"></label>
   ${x.updated?`<div class="tz-f"><span>Изменено</span><div class="tz-ro">${fmtDate(x.updated,true)}${x.created?' · создано '+fmtDate(x.created,true):''}</div></div>`:''}
-  <div class="tz-bar wide"><button class="tz-btn" type="submit">${isNew?'Создать ТЗ':'Сохранить'}</button><a class="tz-btn ghost" href="#tz">Отмена</a>${isNew?'':'<button class="tz-btn ghost danger" type="button" data-tzdel>В архив</button>'}<span class="tz-msg" id="tzmsg"></span></div>
+  <div class="tz-bar wide"><button class="tz-btn" type="submit">${isNew?'Создать ТЗ':'Сохранить'}</button><a class="tz-btn ghost" href="#tz">Отмена</a>${isNew?'':(stKey(x.status)==='done'?'<button class="tz-btn ghost" type="button" data-tzundo>↩ Вернуть в работу</button>':'')}${isNew?'':'<button class="tz-btn ghost danger" type="button" data-tzdel>В архив</button>'}<span class="tz-msg" id="tzmsg"></span></div>
+  ${isNew||stKey(x.status)==='done'?'':'<button class="tz-btn tz-donebtn wide" type="button" data-tzdone>✓ ТЗ выполнено</button>'}
   </form>${linkify(x)}`}
 function linkify(x){const urls=((x.refs||'')+' '+(x.result||'')+' '+(x.brief||'')).match(/https?:\/\/\S+/g);return urls&&urls.length?`<div class="tz-links"><b>Ссылки</b>${[...new Set(urls)].map(u=>`<a href="${esc(u)}" target="_blank" rel="noopener">${esc(u.length>70?u.slice(0,70)+'…':u)}</a>`).join('')}</div>`:''}
 // ---------- ТЗ голосом ----------
@@ -742,17 +744,19 @@ function tzMe(){try{return localStorage.getItem('tz-me')||''}catch(e){return''}}
 document.addEventListener('click',e=>{
   const c=e.target.closest('[data-tzf]');if(c){TZ.filter=c.dataset.tzf;route();return}
   if(e.target.closest('[data-tzr]')){TZ.items=null;tzLoad(true);route();return}
+  if(e.target.closest('[data-tzdone]')){const f=$('#tzform');tzSave(f,{status:'done'},'#tz/done');return}
+  if(e.target.closest('[data-tzundo]')){const f=$('#tzform');tzSave(f,{status:'work'},'#tz');return}
   if(e.target.closest('[data-tzdel]')){const f=$('#tzform');if(!confirm('Убрать это ТЗ в архив?'))return;tzSave(f,{archived:true});}
 });
 document.addEventListener('submit',e=>{if(e.target.id==='tzform'){e.preventDefault();tzSave(e.target,{})}});
-async function tzSave(f,extra){
+async function tzSave(f,extra,go){
   const fd=new FormData(f),item={id:f.dataset.id||''};
   for(const k of ['type','title','project','city','assignee','deadline','status','brief','refs','result','author'])item[k]=(fd.get(k)||'').toString().trim();
   item.formats=fd.getAll('formats');Object.assign(item,extra);
   try{localStorage.setItem('tz-me',item.author)}catch(e){}
   const m=$('#tzmsg');m.textContent='Сохраняю…';m.className='tz-msg';
   try{const j=await tzCall('save',{item});const i=TZ.items.findIndex(x=>x.id===j.item.id);if(i>=0)TZ.items[i]=j.item;else TZ.items.push(j.item);
-    m.textContent='Сохранено';location.hash='#tz'}
+    m.textContent=extra&&extra.status==='done'?'Выполнено ✓':'Сохранено';if(extra&&extra.status==='done')toast('ТЗ выполнено и перенесено в «Готово»');location.hash=go||'#tz'}
   catch(err){m.textContent='Не сохранилось: '+err.message;m.className='tz-msg bad'}}
 
 function route(){
@@ -795,7 +799,7 @@ document.querySelectorAll('.vt button').forEach(x=>x.addEventListener('click',()
 let tt;function toast(s){const t=$('#toast');t.textContent=s;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2600)}
 window.GATE.then(()=>fetch('data.json',{cache:'no-store'})).then(r=>{if(!r.ok)throw 0;return r.json()}).then(d=>{build(d);route()}).catch(()=>{$('#main').innerHTML='<div class="empty">Не удалось загрузить список. Обновите страницу через минуту.</div>'});
 })();
-const BUILD='20261122194731';(function(){async function chk(){try{const r=await fetch(location.href.split('#')[0].split('?')[0]+'?v='+Date.now(),{cache:'no-store'});if(!r.ok)return;const t=await r.text();const m=t.match(/const BUILD='(\d+)'/);if(m&&m[1]!==BUILD&&!document.body.classList.contains('tz-dragging')&&!document.querySelector('form.tz-form'))location.reload()}catch(e){}}setTimeout(chk,3000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)chk()});setInterval(chk,10*60e3)})();
+const BUILD='20261123210516';(function(){async function chk(){try{const r=await fetch(location.href.split('#')[0].split('?')[0]+'?v='+Date.now(),{cache:'no-store'});if(!r.ok)return;const t=await r.text();const m=t.match(/const BUILD='(\d+)'/);if(m&&m[1]!==BUILD&&!document.body.classList.contains('tz-dragging')&&!document.querySelector('form.tz-form'))location.reload()}catch(e){}}setTimeout(chk,3000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)chk()});setInterval(chk,10*60e3)})();
 </script>
 
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
