@@ -797,9 +797,9 @@ function setView(v){document.body.classList.toggle('lv',v==='list');document.que
 setView(store.get('lotus-view')==='list'?'list':'grid');
 document.querySelectorAll('.vt button').forEach(x=>x.addEventListener('click',()=>setView(x.dataset.view)));
 let tt;function toast(s){const t=$('#toast');t.textContent=s;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2600)}
-window.GATE.then(()=>fetch('data.json',{cache:'no-store'})).then(r=>{if(!r.ok)throw 0;return r.json()}).then(d=>{build(d);route()}).catch(()=>{$('#main').innerHTML='<div class="empty">Не удалось загрузить список. Обновите страницу через минуту.</div>'});
+window.GATE.then(()=>fetch('data.json',{cache:'no-store'})).then(r=>{if(!r.ok)throw 0;return r.json()}).then(d=>{{const KR=t=>typeof t==='string'?t.replace(/краски/gi,'KRASKI'):t;(d.folders||[]).forEach(f=>f[2]=KR(f[2]));(d.files||[]).forEach(f=>f[2]=KR(f[2]))}build(d);route()}).catch(()=>{$('#main').innerHTML='<div class="empty">Не удалось загрузить список. Обновите страницу через минуту.</div>'});
 })();
-const BUILD='20261128152658';(function(){async function chk(){try{const r=await fetch(location.href.split('#')[0].split('?')[0]+'?v='+Date.now(),{cache:'no-store'});if(!r.ok)return;const t=await r.text();const m=t.match(/const BUILD='(\d+)'/);if(m&&m[1]!==BUILD&&!document.body.classList.contains('tz-dragging')&&!document.querySelector('form.tz-form'))location.reload()}catch(e){}}setTimeout(chk,3000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)chk()});setInterval(chk,10*60e3)})();
+const BUILD='20261128152752';(function(){async function chk(){try{const r=await fetch(location.href.split('#')[0].split('?')[0]+'?v='+Date.now(),{cache:'no-store'});if(!r.ok)return;const t=await r.text();const m=t.match(/const BUILD='(\d+)'/);if(m&&m[1]!==BUILD&&!document.body.classList.contains('tz-dragging')&&!document.querySelector('form.tz-form'))location.reload()}catch(e){}}setTimeout(chk,3000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)chk()});setInterval(chk,10*60e3)})();
 </script>
 
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
